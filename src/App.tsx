@@ -1,10 +1,16 @@
+import CssBaseline from '@mui/material/CssBaseline';
+
+import AppBar from './AppBar';
+import Map from './Map';
+
 import './App.css'
 
 function App() {
   return (
     <>
-      <h1>Underfoot Web</h1>
-      <p>Here we go</p>
+      <CssBaseline />
+      <AppBar />
+      <Map />
     </>
   )
 }
