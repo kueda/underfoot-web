@@ -2,7 +2,7 @@ import { Drawer as Vaul } from 'vaul';
 import React from 'react';
 
 export default function UnderfootMap() {
-  const [snap, setSnap] = React.useState<number | string | null>("100px");
+  const [snap, setSnap] = React.useState<number | string | null | undefined>("100px");
   return (
     <div
       style={{
@@ -39,21 +39,31 @@ export default function UnderfootMap() {
             }}
           >
             <div>
-              <button
-                type="button"
-                onClick={( ) => setSnap( snap === 1 ? "100px" : 1 )}
+              <div
                 style={{
                   width: "100%",
                   background: "none",
                   textAlign: "start",
                   paddingLeft: 20,
                   border: "1px solid green",
-                  height: 100
+                  height: 100,
+                  display: 'flex',
+                  flexDirection: 'row'
                 }}
               >
-                <Vaul.Title style={{ margin: 0 }}>Bottom sheet title</Vaul.Title>
-                <p>Bottom sheet meta</p>
-              </button>
+                <div style={{ flexGrow: 1 }}>
+                  <Vaul.Title style={{ margin: 0 }}>Bottom sheet title</Vaul.Title>
+                  <p>Bottom sheet meta</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', paddingRight: 20 }}>
+                  <button
+                    type="button"
+                    onClick={( ) => setSnap( snap === 1 ? "100px" : 1 )}
+                  >
+                    { snap === 1 ? 'Less' : 'More' }
+                  </button>
+                </div>
+              </div>
               <p>Lorem ipsum labore tempor sit enim minim sed nostrud id sed et eiusmod laborum aliqua dolore velit duis veniam occaecat aliqua dolore ex ea consectetur veniam laborum consequat quis tempor qui.</p>
             </div>
           </Vaul.Content>
