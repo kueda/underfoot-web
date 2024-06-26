@@ -16,7 +16,10 @@
     "@mui/icons-material": "^5.15.19",
     "@mui/material": "^5.15.19",
     "eslint-plugin-react": "^7.34.2",
+    "jszip": "^3.10.1",
+    "localforage": "^1.10.0",
     "maplibre-gl": "^4.4.1",
+    "pretty-bytes": "^6.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "vaul": "^0.9.1"
