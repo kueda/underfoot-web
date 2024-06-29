@@ -8,10 +8,13 @@ import IconButton from '@mui/material/IconButton';
 import jszip from 'jszip';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import localforage from 'localforage';
 import prettyBytes from 'pretty-bytes';
 import Toolbar from '@mui/material/Toolbar';
+import Radio from '@mui/material/Radio';
 import { useEffect, useState } from 'react';
 
 interface PacksProps {
@@ -44,6 +47,7 @@ interface Manifest {
 }
 
 const packStore = localforage.createInstance({ name: 'packStore' });
+const prefStore = localforage.createInstance({ name: 'prefStore' });
 
 async function unzipPack( blob: Blob ) {
   let zip: jszip;
@@ -84,7 +88,8 @@ async function unzipPack( blob: Blob ) {
 
 export default function Packs( { onClose }: PacksProps ) {
   const [manifest, setManifest] = useState<Manifest>( null );
-  const [packs, setPacks] = useState<{[packId:string]: Pack | null}>( { } );
+  const [downloadedPacks, setDownloadedPacks] = useState<{[packId:string]: Pack | null}>( { } );
+  const [currentPackId, setCurrentPackId] = useState<string>( );
   // const currentPackId = Object.keys( packs ).at( 0 );
   // const currentPack = currentPackId
   //   ? packs[currentPackId]
@@ -92,16 +97,16 @@ export default function Packs( { onClose }: PacksProps ) {
 
   async function addPack( packId: string, blob: Blob ) {
     const unzippedPack: Pack = await unzipPack( blob );
-    setPacks( {
-      ...packs,
+    setDownloadedPacks( {
+      ...downloadedPacks,
       [packId]: unzippedPack
     } );
     return packStore.setItem( packId, blob );
   }
 
   async function deletePack( packId: string ) {
-    setPacks( {
-      ...packs,
+    setDownloadedPacks( {
+      ...downloadedPacks,
       [packId]: null
     } );
     return packStore.setItem( packId, null );
@@ -120,10 +125,16 @@ export default function Packs( { onClose }: PacksProps ) {
         const unzipped = await unzipPack( blob );
         newPacks[packId] = unzipped;
       } ) );
-      setPacks( newPacks );
+      setDownloadedPacks( newPacks );
     }
     getStoredPacks( ).catch( e => console.error("Error loading stored packs: ", e));
   }, [] );
+
+  useEffect( ( ) => {
+    prefStore.getItem("currentPackId")
+      .then(setCurrentPackId)
+      .catch(e => console.error("Failed to get currentPackId: ", e))
+  }, []);
 
   useEffect( ( ) => {
     fetch( "https://static.underfoot.rocks/manifest.json" )
@@ -133,6 +144,12 @@ export default function Packs( { onClose }: PacksProps ) {
         console.error( "[ERROR] oh no!: ", err );
       })
   }, [] );
+
+  const choosePack = (packId: string) => {
+    setCurrentPackId(packId);
+    prefStore.setItem("currentPackId", packId)
+      .catch( e => console.error( "Failed to get currentPackId: ", e))
+  }
 
   return (
     <>
@@ -159,7 +176,7 @@ export default function Packs( { onClose }: PacksProps ) {
               key={pack.id}
               sx={{ pl: 0 }}
               secondaryAction={
-                packs[pack.id]
+                downloadedPacks[pack.id]
                   ? (
                     <IconButton
                       edge="end"
@@ -190,23 +207,36 @@ export default function Packs( { onClose }: PacksProps ) {
                   )
               }
             >
-              <ListItemText
-                primary={pack.name}
-                primaryTypographyProps={{
-                  noWrap: true,
-                }}
-                secondary={
-                  [
-                    pack.description,
-                    packs[pack.id]
-                      ? ` (ways: ${prettyBytes( packs[pack.id]?.['ways']?.size || 0 )}, rocks: ${prettyBytes( packs[pack.id]?.rocks?.size || 0 )}, water: ${prettyBytes( packs[pack.id]?.water?.size || 0 )}, context: ${prettyBytes( packs[pack.id]?.context?.size || 0 )}, , contours: ${prettyBytes( packs[pack.id]?.contours?.size || 0 )})`
-                      : ""
-                  ].join( " " )
-                }
-                secondaryTypographyProps={{
-                  noWrap: true,
-                }}
-              />
+              <ListItemButton
+                disabled={!downloadedPacks[pack.id]}
+                sx={{ px: 0 }}
+                onClick={( ) => choosePack(pack.id)}
+              >
+                <ListItemIcon>
+                  <Radio
+                    edge="start"
+                    checked={currentPackId === pack.id}
+                    disableRipple
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary={pack.name}
+                  primaryTypographyProps={{
+                    noWrap: true,
+                  }}
+                  secondary={
+                    [
+                      pack.description,
+                      downloadedPacks[pack.id]
+                        ? ` (ways: ${prettyBytes( downloadedPacks[pack.id]?.['ways']?.size || 0 )}, rocks: ${prettyBytes( downloadedPacks[pack.id]?.rocks?.size || 0 )}, water: ${prettyBytes( downloadedPacks[pack.id]?.water?.size || 0 )}, context: ${prettyBytes( downloadedPacks[pack.id]?.context?.size || 0 )}, , contours: ${prettyBytes( downloadedPacks[pack.id]?.contours?.size || 0 )})`
+                        : ""
+                    ].join( " " )
+                  }
+                  secondaryTypographyProps={{
+                    noWrap: true,
+                  }}
+                />
+              </ListItemButton>
             </ListItem>
           ) ) }
         </List>
