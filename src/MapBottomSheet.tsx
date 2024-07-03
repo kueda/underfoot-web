@@ -23,7 +23,7 @@ function MapBottomSheet() {
             right: 0,
             // the rest is gravy
             backgroundColor: "red",
-            zIndex: 1200
+            zIndex: 1101
           }}
         >
           <div>

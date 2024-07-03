@@ -15,14 +15,22 @@ import { useState } from 'react';
 
 interface DrawerProps {
   drawerOpen: boolean,
+  setCurrentPackId: (packId: string) => void,
   setDrawerOpen: (newVal: boolean) => void
 }
 
-export default function UnderfootDrawer({ drawerOpen, setDrawerOpen }: DrawerProps) {
+export default function UnderfootDrawer({
+  drawerOpen,
+  setCurrentPackId,
+  setDrawerOpen
+}: DrawerProps) {
   const [packsModalShown, setPacksModalShown] = useState(false);
 	return (
     <>
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setDrawerOpen(false)}>
           <List>
             <ListItem disablePadding>
@@ -52,7 +60,10 @@ export default function UnderfootDrawer({ drawerOpen, setDrawerOpen }: DrawerPro
         fullScreen
         onClose={( ) => setPacksModalShown(false)}
       >
-        <Packs onClose={() => setPacksModalShown(false)} />
+        <Packs
+          onChoose={setCurrentPackId}
+          onClose={() => setPacksModalShown(false)}
+        />
       </Dialog>
     </>
 	);
