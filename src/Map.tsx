@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import maplibregl, { Map } from 'maplibre-gl';
+import maplibregl, { Map, StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from "pmtiles";
 import Modal from '@mui/material/Modal';
@@ -7,6 +7,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import MapBottomSheet from './MapBottomSheet';
 import { usePackStore } from './PackStore';
+import { ROCK_STYLE } from './mapStyles';
 
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
@@ -69,31 +70,15 @@ export default function UnderfootMap({currentPackId}: Props) {
         )
       );
       protocol.add(waysPmtiles);
+      if (!packData.rocks) throw new Error(`Pack ${currentPackId} did not have rocks data`);
+      const rocksPmtiles = new pmtiles.PMTiles(
+        new pmtiles.FileSource(new File([packData.rocks], "rocks"))
+      );
+      protocol.add(rocksPmtiles);
+      map.current.setStyle(ROCK_STYLE);
       const waysHeader = await waysPmtiles.getHeader( );
-
       map.current.setZoom(waysHeader.maxZoom - 2);
       map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat])
-      map.current.setStyle({
-        version: 8,
-        sources: {
-          ways: {
-            type: 'vector',
-            tiles: ["pmtiles://ways/{z}/{x}/{y}"],
-            attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
-          }
-        },
-        layers: [
-          {
-            id: 'roads',
-            source: 'ways',
-            'source-layer': 'underfoot_ways',
-            type: 'line',
-            paint: {
-              'line-color': 'deeppink'
-            }
-          }
-        ]
-      });
       setLoadedPackId(currentPackId);
       setPackLoading(false);
     }
