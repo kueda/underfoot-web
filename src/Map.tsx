@@ -1,9 +1,10 @@
 import {useEffect, useRef, useState} from 'react';
-import maplibregl, { Map, StyleSpecification } from 'maplibre-gl';
+import maplibregl, { Map, MapGeoJSONFeature } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from "pmtiles";
 import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
+import AddIcon from '@mui/icons-material/Add';
 
 import MapBottomSheet from './MapBottomSheet';
 import { usePackStore } from './PackStore';
@@ -36,6 +37,7 @@ export default function UnderfootMap({currentPackId}: Props) {
   const [loadedPackId, setLoadedPackId] = useState<string>();
   const [mapLoaded, setMapLoaded] = useState(false);
   const [packLoading, setPackLoading] = useState(false);
+  const [feature, setFeature] = useState<MapGeoJSONFeature>();
 
   useEffect( ( ) => {
     if ( map.current ) return;
@@ -50,6 +52,21 @@ export default function UnderfootMap({currentPackId}: Props) {
     map.current.on('load', () => {
       setMapLoaded(true);
     });
+    map.current.on('moveend', () => {
+      if (!map.current) return;
+      const {lat, lng} = map.current.getCenter();
+      // console.log('querying features at ', [lng, lat]);
+      const features = map.current.queryRenderedFeatures(map.current.project([lng, lat]));
+      // console.log('features', features);
+      // new maplibregl.Marker()
+      //   .setLngLat([lng,lat])
+      //   .addTo(map.current);
+      if ( features.length > 0 ) {
+        setFeature(features.find(f => f.sourceLayer === 'rock_units'));
+      } else {
+        setFeature(undefined);
+      }
+    })
   }, [map, mapContainer] );
 
   useEffect( ( ) => {
@@ -98,9 +115,10 @@ export default function UnderfootMap({currentPackId}: Props) {
   ])
 
   return (
-    <div className="map-wrapper">
+    <div className='map-wrapper'>
       <div className="map" ref={mapContainer} />
-      <MapBottomSheet />
+      <AddIcon fontSize='large' className="add-icon" />
+      <MapBottomSheet feature={feature} />
       <Modal
         open={packLoading}
         className="loading-modal"
