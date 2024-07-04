@@ -6,7 +6,9 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import MapIcon from '@mui/icons-material/Map';
+import BackpackIcon from '@mui/icons-material/Backpack';
+import LandscapeIcon from '@mui/icons-material/Landscape';
+import WaterIcon from '@mui/icons-material/Water';
 import Dialog from '@mui/material/Dialog';
 
 import Packs from './Packs'
@@ -34,11 +36,19 @@ export default function UnderfootDrawer({
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setDrawerOpen(false)}>
           <List>
             <ListItem disablePadding>
-              <ListItemButton>
+              <ListItemButton disabled>
                 <ListItemIcon>
-                  <MapIcon />
+                  <LandscapeIcon />
                 </ListItemIcon>
                 <ListItemText primary="Rocks" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton disabled>
+                <ListItemIcon>
+                  <WaterIcon />
+                </ListItemIcon>
+                <ListItemText primary="Water" />
               </ListItemButton>
             </ListItem>
           </List>
@@ -47,7 +57,7 @@ export default function UnderfootDrawer({
             <ListItem disablePadding>
               <ListItemButton onClick={( ) => setPacksModalShown(existing => !existing)}>
                 <ListItemIcon>
-                  <MapIcon />
+                  <BackpackIcon />
                 </ListItemIcon>
                 <ListItemText primary="Packs" />
               </ListItemButton>
