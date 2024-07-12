@@ -14,7 +14,7 @@ function App() {
     async function getCurrentPackId() {
       try {
         const packId = await packStore.getCurrentPackId();
-        setCurrentPackId(packId);
+        if (packId) setCurrentPackId(packId);
       } catch (err) {
         console.error('Failed to get current pack ID', err);
       }

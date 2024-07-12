@@ -14,7 +14,7 @@ import { ROCK_STYLE } from './mapStyles';
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol('pmtiles', (request) => {
   return new Promise((resolve, reject) => {
-    const callback = (err: Error | undefined, data) => {
+    const callback = (err: Error | undefined, data: any) => {
       if (err) {
         reject(err);
       } else {
@@ -52,7 +52,7 @@ export default function UnderfootMap({currentPackId}: Props) {
     map.current.on('load', () => {
       setMapLoaded(true);
     });
-    map.current.on('moveend', () => {
+    map.current.on('move', () => {
       if (!map.current) return;
       const {lat, lng} = map.current.getCenter();
       // console.log('querying features at ', [lng, lat]);

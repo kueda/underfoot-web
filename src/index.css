@@ -27,7 +27,7 @@ body {
 }
 
 .wrapper {
-  backgroundColor: lightyellow;
+  background-color: lightyellow;
   width: 100%;
   height: 100%;
   position: fixed;
