@@ -46,8 +46,7 @@ export default function UnderfootMap({currentPackId}: Props) {
     map.current = new maplibregl.Map( {
       container: mapContainer.current,
       center: [-122, 38],
-      zoom: 2,
-      style: 'https://demotiles.maplibre.org/style.json',
+      zoom: 2
     } );
     map.current.on('load', () => {
       setMapLoaded(true);
@@ -55,9 +54,7 @@ export default function UnderfootMap({currentPackId}: Props) {
     map.current.on('move', () => {
       if (!map.current) return;
       const {lat, lng} = map.current.getCenter();
-      // console.log('querying features at ', [lng, lat]);
       const features = map.current.queryRenderedFeatures(map.current.project([lng, lat]));
-      // console.log('features', features);
       // new maplibregl.Marker()
       //   .setLngLat([lng,lat])
       //   .addTo(map.current);
@@ -103,7 +100,7 @@ export default function UnderfootMap({currentPackId}: Props) {
       packStore
       && currentPackId
       && currentPackId !== loadedPackId
-      && mapLoaded
+      && map.current
     ) {
       changePack().catch(e => console.error(`Failed to change to pack ${currentPackId}`, e));
     }

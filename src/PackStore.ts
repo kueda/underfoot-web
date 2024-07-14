@@ -124,13 +124,14 @@ class Manifest {
 }
 
 export interface PackStore {
-  currentPackId: string | null,
+  currentPackId: string | null;
+  download: (packId: string) => Promise<void>;
   get: (packId: string) => Promise<Pack | undefined>;
   getCurrentPackId: ( ) => Promise<string | null>;
-  setCurrent: (packId: string) => void;
   list: ( ) => Promise<Pack[]>;
-  download: (packId: string) => Promise<void>;
+  manifest: RemoteManifest;
   remove: (packId: string) => Promise<void>;
+  setCurrent: (packId: string) => void;
 }
 
 const packStore = localforage.createInstance({ name: 'packStore' });
@@ -214,11 +215,12 @@ export function usePackStore( ): PackStore {
 
   return {
     currentPackId,
+    download,
     get,
     getCurrentPackId,
-    setCurrent,
     list,
-    download,
-    remove
+    manifest,
+    remove,
+    setCurrent,
   };
 }

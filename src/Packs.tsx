@@ -17,20 +17,25 @@ interface PacksProps {
 
 export default function Packs( { onChoose, onClose }: PacksProps ) {
   const packStore = usePackStore( );
+  const { list: listPacks, manifest } = packStore;
   const [getPacksNeeded, setGetPacksNeeded] = useState(true);
 
   const [packs, setPacks] = useState<Pack[]>([])
 
   useEffect(() => {
     async function getPacks() {
-      const listedPacks = await packStore.list( );
+      const listedPacks = await listPacks( );
       setPacks(listedPacks);
     }
-    if (packStore && getPacksNeeded) {
+    if (manifest && getPacksNeeded) {
       getPacks().catch(e => console.error("Failed to get packs", e));
       setGetPacksNeeded(false);
     }
-  }, [getPacksNeeded, packStore]);
+  }, [
+    getPacksNeeded,
+    listPacks,
+    manifest
+  ]);
 
   return (
     <>
