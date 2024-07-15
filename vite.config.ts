@@ -46,9 +46,9 @@ export default defineConfig({
             purpose: 'any'
           },
           {
-            src: 'icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            src: 'mask-icon.svg',
+            sizes: '108x108',
+            type: 'image/svg+xml',
             purpose: 'maskable'
           }
         ]
