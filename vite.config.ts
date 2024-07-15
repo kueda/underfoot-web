@@ -27,7 +27,8 @@ export default defineConfig({
         name: 'Underfoot',
         short_name: 'Underfoot',
         description: 'The world beneath your feet',
-        theme_color: '#ffffff',
+        theme_color: '#000000',
+        background_color: '#ffffff',
         icons: [
           {
             src: 'icon-192x192.png',
@@ -46,9 +47,9 @@ export default defineConfig({
             purpose: 'any'
           },
           {
-            src: 'mask-icon.svg',
-            sizes: '108x108',
-            type: 'image/svg+xml',
+            src: 'icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'maskable'
           }
         ]
