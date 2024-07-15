@@ -129,7 +129,7 @@ export interface PackStore {
   get: (packId: string) => Promise<Pack | undefined>;
   getCurrentPackId: ( ) => Promise<string | null>;
   list: ( ) => Promise<Pack[]>;
-  manifest: RemoteManifest;
+  manifest: Manifest | undefined;
   remove: (packId: string) => Promise<void>;
   setCurrent: (packId: string) => void;
 }
