@@ -29,7 +29,6 @@ function App() {
       <CssBaseline />
       <AppBar
         currentPackId={currentPackId}
-        setCurrentPackId={setCurrentPackId}
         showPacksModal={() => setPacksModalShown(true)}
       />
       <Map currentPackId={currentPackId} showPacksModal={() => setPacksModalShown(true)} />
