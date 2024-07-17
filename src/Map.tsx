@@ -4,7 +4,6 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from "pmtiles";
 import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -16,6 +15,7 @@ import { NO_STYLE, ROCK_STYLE } from './mapStyles';
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol('pmtiles', (request) => {
   return new Promise((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (err: Error | undefined, data: any) => {
       if (err) {
         reject(err);
