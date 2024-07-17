@@ -10,7 +10,8 @@ import Radio from '@mui/material/Radio';
 import { Pack, PackStore } from './PackStore';
 
 interface Props {
-  onChoose?: (packId: string) => void,
+  currentPackId: string | null,
+  onChoose?: (packId: string | null) => void,
   onDelete?: ( ) => void,
   onDownload?: ( ) => void,
   pack: Pack,
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const PackListItem = ( {
+  currentPackId,
   onChoose,
   onDelete,
   onDownload,
@@ -38,6 +40,7 @@ const PackListItem = ( {
               onClick={( ) => {
                 packStore.remove( pack.id )
                   .then(( ) => ( typeof ( onDelete ) === "function" ? onDelete() : null))
+                  .then(() => ( typeof ( onChoose ) === "function" ? onChoose(null) : null))
                   .catch( e => console.error('Problem deleting pack: ', e));
               }}
             >
@@ -51,7 +54,8 @@ const PackListItem = ( {
               aria-label="download"
               onClick={( ) => {
                 packStore.download(pack.id)
-                  .then(( ) => ( typeof ( onDownload ) === "function" ? onDownload() : null))
+                  .then(() => ( typeof ( onDownload ) === "function" ? onDownload() : null))
+                  .then(() => ( typeof ( onChoose ) === "function" ? onChoose(pack.id) : null))
                   .catch(e => console.error('Failed to download pack', e));
               }}
             >
@@ -71,7 +75,7 @@ const PackListItem = ( {
         <ListItemIcon>
           <Radio
             edge="start"
-            checked={packStore.currentPackId === pack.id}
+            checked={currentPackId === pack.id}
             disableRipple
           />
         </ListItemIcon>

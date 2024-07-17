@@ -10,10 +10,11 @@ import Typography from '@mui/material/Typography';
 import Drawer from './Drawer'
 
 interface Props {
-  setCurrentPackId: (packId: string) => void
+  currentPackId: string | null;
+  showPacksModal: ( ) => void;
 }
 
-export default function UnderfootAppBar({ setCurrentPackId }: Props) {
+export default function UnderfootAppBar({ showPacksModal }: Props) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const handleDrawerToggle = () => {
     setDrawerOpen(prevState => !prevState);
@@ -24,7 +25,7 @@ export default function UnderfootAppBar({ setCurrentPackId }: Props) {
       <Drawer
         drawerOpen={drawerOpen}
         setDrawerOpen={setDrawerOpen}
-        setCurrentPackId={setCurrentPackId}
+        showPacksModal={showPacksModal}
       />
       <Box sx={{ display: 'flex' }}>
         <AppBar component="nav">

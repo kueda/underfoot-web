@@ -4,11 +4,13 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from "pmtiles";
 import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
 import MapBottomSheet from './MapBottomSheet';
 import { usePackStore } from './PackStore';
-import { ROCK_STYLE } from './mapStyles';
+import { NO_STYLE, ROCK_STYLE } from './mapStyles';
 
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
@@ -27,14 +29,15 @@ maplibregl.addProtocol('pmtiles', (request) => {
 });
 
 interface Props {
-  currentPackId?: string
+  currentPackId: string | null;
+  showPacksModal: ( ) => void;
 }
 
-export default function UnderfootMap({currentPackId}: Props) {
+export default function UnderfootMap({currentPackId, showPacksModal}: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<Map>();
   const packStore = usePackStore( );
-  const [loadedPackId, setLoadedPackId] = useState<string>();
+  const [loadedPackId, setLoadedPackId] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [packLoading, setPackLoading] = useState(false);
   const [feature, setFeature] = useState<MapGeoJSONFeature>();
@@ -68,11 +71,16 @@ export default function UnderfootMap({currentPackId}: Props) {
 
   useEffect( ( ) => {
     async function changePack() {
-      if (!currentPackId) return;
       if (currentPackId === loadedPackId) return;
       if (!map.current) return;
+      // If there's no pack, ensure style gets reset so map is blank
+      if (!currentPackId) {
+        setLoadedPackId(null);
+        map.current.setStyle(NO_STYLE);
+        return;
+      }
       const currentPack = await packStore.get(currentPackId);
-      if (!currentPack) return;
+      if (!currentPack) throw new Error(`Pack not downloaded: ${currentPackId}`);
       setPackLoading(true);
       const packData = await currentPack.unzippedData();
       if (!packData.ways) throw new Error(`Pack ${currentPackId} did not have ways data`);
@@ -98,7 +106,6 @@ export default function UnderfootMap({currentPackId}: Props) {
     }
     if (
       packStore
-      && currentPackId
       && currentPackId !== loadedPackId
       && map.current
     ) {
@@ -113,9 +120,19 @@ export default function UnderfootMap({currentPackId}: Props) {
 
   return (
     <div className='map-wrapper'>
-      <div className="map" ref={mapContainer} />
-      <AddIcon fontSize='large' className="add-icon" />
-      <MapBottomSheet feature={feature} />
+      <div className={`map ${loadedPackId ? 'loaded': ''}`} ref={mapContainer} />
+      { loadedPackId && (
+        <>
+          <AddIcon fontSize='large' className="add-icon" />
+          <MapBottomSheet feature={feature} />
+        </>
+      ) }
+      { !loadedPackId && !packLoading && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <p>Welcome to Underfoot! To get started,</p>
+          <Button onClick={showPacksModal} variant="contained">DOWNLOAD SOME DATA</Button>
+        </div>
+      )}
       <Modal
         open={packLoading}
         className="loading-modal"

@@ -9,24 +9,19 @@ import ListItemText from '@mui/material/ListItemText';
 import BackpackIcon from '@mui/icons-material/Backpack';
 import LandscapeIcon from '@mui/icons-material/Landscape';
 import WaterIcon from '@mui/icons-material/Water';
-import Dialog from '@mui/material/Dialog';
 
-import Packs from './Packs'
-
-import { useState } from 'react';
 
 interface DrawerProps {
-  drawerOpen: boolean,
-  setCurrentPackId: (packId: string) => void,
-  setDrawerOpen: (newVal: boolean) => void
+  drawerOpen: boolean;
+  setDrawerOpen: (newVal: boolean) => void;
+  showPacksModal: ( ) => void;
 }
 
 export default function UnderfootDrawer({
   drawerOpen,
-  setCurrentPackId,
-  setDrawerOpen
+  setDrawerOpen,
+  showPacksModal
 }: DrawerProps) {
-  const [packsModalShown, setPacksModalShown] = useState(false);
 	return (
     <>
       <Drawer
@@ -55,7 +50,7 @@ export default function UnderfootDrawer({
           <Divider />
           <List>
             <ListItem disablePadding>
-              <ListItemButton onClick={( ) => setPacksModalShown(existing => !existing)}>
+              <ListItemButton onClick={showPacksModal}>
                 <ListItemIcon>
                   <BackpackIcon />
                 </ListItemIcon>
@@ -65,16 +60,6 @@ export default function UnderfootDrawer({
           </List>
         </Box>
       </Drawer>
-      <Dialog
-        open={packsModalShown}
-        fullScreen
-        onClose={( ) => setPacksModalShown(false)}
-      >
-        <Packs
-          onChoose={setCurrentPackId}
-          onClose={() => setPacksModalShown(false)}
-        />
-      </Dialog>
     </>
 	);
 }

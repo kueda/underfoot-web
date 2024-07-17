@@ -43,6 +43,9 @@ body {
   height: 100%;
 }
 
+.map { visibility: hidden; }
+.map.loaded { visibility: visible; }
+
 .map-wrapper {
   display: flex;
   justify-content: center;

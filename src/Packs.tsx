@@ -11,11 +11,16 @@ import { usePackStore, Pack } from './PackStore';
 import PackListItem from './PackListItem';
 
 interface PacksProps {
-  onChoose: (packId: string) => void,
+  currentPackId: string | null,
+  onChoose: (packId: string | null) => void,
   onClose: () => void
 }
 
-export default function Packs( { onChoose, onClose }: PacksProps ) {
+export default function Packs( {
+  currentPackId,
+  onChoose,
+  onClose
+}: PacksProps ) {
   const packStore = usePackStore( );
   const { list: listPacks, manifest } = packStore;
   const [getPacksNeeded, setGetPacksNeeded] = useState(true);
@@ -60,6 +65,7 @@ export default function Packs( { onChoose, onClose }: PacksProps ) {
           { packs.map(pack => (
             <PackListItem
               key={pack.id}
+              currentPackId={currentPackId}
               pack={pack}
               packStore={packStore}
               onChoose={onChoose}

@@ -1,5 +1,11 @@
 import { StyleSpecification } from 'maplibre-gl';
 
+const NO_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {},
+  layers: []
+};
+
 const ROCK_STYLE: StyleSpecification = {
   version: 8,
   sources: {
@@ -306,4 +312,7 @@ const ROCK_STYLE: StyleSpecification = {
 };
 
 
-export { ROCK_STYLE };
+export {
+  NO_STYLE,
+  ROCK_STYLE
+};
