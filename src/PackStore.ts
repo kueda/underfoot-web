@@ -129,9 +129,11 @@ export interface PackStore {
   get: (packId: string) => Promise<Pack | undefined>;
   getCurrentPackId: ( ) => Promise<string | null>;
   list: ( ) => Promise<Pack[]>;
+  listLocal: ( ) => Promise<Pack[]>;
   manifest: Manifest | undefined;
   remove: (packId: string) => Promise<void>;
   setCurrent: (packId: string) => void;
+  error: Error | null;
 }
 
 const packStore = localforage.createInstance({ name: 'packStore' });
@@ -140,6 +142,7 @@ const prefStore = localforage.createInstance({ name: 'prefStore' });
 export function usePackStore( ): PackStore {
   const [manifest, setManifest] = useState<Manifest | undefined>( undefined );
   const [currentPackId, setCurrentPackId] = useState<string | null>( null );
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect( () => {
     prefStore.getItem<string>("currentPackId")
@@ -151,8 +154,9 @@ export function usePackStore( ): PackStore {
     fetch( "https://static.underfoot.rocks/manifest.json" )
       .then( r => r.json( ) )
       .then( (json: RemoteManifest) => setManifest(new Manifest(json)) )
-      .catch( err => {
+      .catch((err: Error) => {
         console.error( "[ERROR] oh no!: ", err );
+        setError(err);
       })
   }, [] );
 
@@ -182,10 +186,15 @@ export function usePackStore( ): PackStore {
       packs = await Promise.all(manifestPacks.filter(pack => pack.pmtilesPath).map(pack => get(pack.id)));
     }
     if (packs.length === 0) {
-      const localPackIds = await packStore.keys();
-      packs = await Promise.all(localPackIds.map(packId => get(packId)));
+      packs = await listLocal();
     }
     return packs.flat() as Pack[];
+  }
+
+  async function listLocal() {
+    const localPackIds = await packStore.keys();
+    const localPacks = await Promise.all(localPackIds.map(packId => get(packId)));
+    return localPacks.flat() as Pack[];
   }
 
   async function download(packId: string) {
@@ -216,9 +225,11 @@ export function usePackStore( ): PackStore {
   return {
     currentPackId,
     download,
+    error,
     get,
     getCurrentPackId,
     list,
+    listLocal,
     manifest,
     remove,
     setCurrent,
