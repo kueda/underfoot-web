@@ -1,6 +1,8 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import React from 'react';
 import Dialog from '@mui/material/Dialog';
+import React from 'react';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 import AppBar from './AppBar';
 import Map from './Map';
@@ -13,6 +15,9 @@ function App() {
   const [currentPackId, setCurrentPackId] = React.useState<string | null>(null);
   const [packsModalShown, setPacksModalShown] = React.useState(false);
   const packStore = usePackStore();
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('md'));
+
   React.useEffect(( ) => {
     async function getCurrentPackId() {
       try {
@@ -24,6 +29,7 @@ function App() {
     }
     if (packStore) getCurrentPackId().catch(e => console.error('Failed to get current pack ID', e));
   }, [packStore]);
+
   return (
     <>
       <CssBaseline />
@@ -34,7 +40,9 @@ function App() {
       <Map currentPackId={currentPackId} showPacksModal={() => setPacksModalShown(true)} />
       <Dialog
         open={packsModalShown}
-        fullScreen
+        fullScreen={isSmall}
+        fullWidth
+        maxWidth="lg"
         onClose={( ) => setPacksModalShown(false)}
       >
         <Packs

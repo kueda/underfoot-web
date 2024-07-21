@@ -1,20 +1,17 @@
-import CircularProgress from '@mui/material/CircularProgress';
 import CloseIcon from '@mui/icons-material/Close';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import { useEffect, useState } from 'react';
 
 import { usePackStore, Pack } from './PackStore';
-import PackListItem from './PackListItem';
+import PackTab from './PackTab';
 
 interface PacksProps {
   currentPackId: string | null,
@@ -66,7 +63,7 @@ export default function Packs( {
     }
   }, [listLocal, downloadedPacksLoaded]);
 
-  const isOffline = error?.message?.match(/NetworkError/);
+  const isOffline = !!error?.message?.match(/NetworkError/);
 
   return (
     <>
@@ -98,61 +95,51 @@ export default function Packs( {
               <Tab label="Downloaded" value="downloaded" />
             </TabList>
           </Box>
-          <TabPanel value="all">
-            {loading && !isOffline && <CircularProgress />}
-            {isOffline && (
-              <DialogContentText sx={{textAlign: 'center'}}>
-                {"Looks like you're offline. You can choose packs from the Downloaded section or try again when " + 
-                 "you're online."}
-              </DialogContentText>
-            )}
-            <List>
-              { packs?.map(pack => (
-                <PackListItem
-                  key={pack.id}
-                  currentPackId={currentPackId}
-                  pack={pack}
-                  packStore={packStore}
-                  onChoose={onChoose}
-                  onDelete={() => {
-                    setPacks(null);
-                    setDownloadedPacks(null);
-                  }}
-                  onDownload={() => {
-                    setPacks(null);
-                    setDownloadedPacks(null);
-                  }}
-                />
-              )) }
-            </List>
-          </TabPanel>
-          <TabPanel value="downloaded">
-            {loadingLocal && <CircularProgress />}
-            {!loadingLocal && (downloadedPacks === null || downloadedPacks?.length === 0) && (
-              <DialogContentText sx={{textAlign: 'center'}}>
-                No packs downloaded yet.
-              </DialogContentText>
-            )}
-            <List>
-              { downloadedPacks?.map(pack => (
-                <PackListItem
-                  key={`downloaded-${pack.id}`}
-                  currentPackId={currentPackId}
-                  pack={pack}
-                  packStore={packStore}
-                  onChoose={onChoose}
-                  onDelete={() => {
-                    setPacks(null);
-                    setDownloadedPacks(null);
-                  }}
-                  onDownload={() => {
-                    setPacks(null);
-                    setDownloadedPacks(null);
-                  }}
-                />
-              )) }
-            </List>
-          </TabPanel>
+          <PackTab
+            value='all'
+            packs={packs}
+            isOffline={isOffline}
+            loading={loading}
+            currentPackId={currentPackId}
+            packStore={packStore}
+            description={
+              isOffline && !loading
+                ? "Looks like you're offline. You can choose packs you've already downloaded or "
+                  + "try again when you're online."
+                : null
+            }
+            onChoose={onChoose}
+            onDelete={() => {
+              setPacks(null);
+              setDownloadedPacks(null);
+            }}
+            onDownload={() => {
+              setPacks(null);
+              setDownloadedPacks(null);
+            }}
+          />
+          <PackTab
+            value='downloaded'
+            packs={downloadedPacks}
+            isOffline={isOffline}
+            loading={loadingLocal}
+            currentPackId={currentPackId}
+            packStore={packStore}
+            description={
+              !loadingLocal && (downloadedPacks === null || downloadedPacks?.length === 0)
+                ? "No packs downloaded yet."
+                : null
+            }
+            onChoose={onChoose}
+            onDelete={() => {
+              setPacks(null);
+              setDownloadedPacks(null);
+            }}
+            onDownload={() => {
+              setPacks(null);
+              setDownloadedPacks(null);
+            }}
+          />
         </TabContext>
       </DialogContent>
     </>

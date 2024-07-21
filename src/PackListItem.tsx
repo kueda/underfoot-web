@@ -108,7 +108,7 @@ const PackListItem = ( {
           if (typeof(onChoose) === "function") onChoose(pack.id);
         }}
       >
-        <ListItemIcon>
+        <ListItemIcon sx={{display: 'flex', justifyContent: 'center'}}>
           <Radio
             edge="start"
             checked={currentPackId === pack.id}
