@@ -34,7 +34,7 @@ export default function Packs( {
 
   const [packs, setPacks] = useState<Pack[] | null>(null);
   const [downloadedPacks, setDownloadedPacks] = useState<Pack[] | null>(null);
-  const [currentTab, setCurrentTab] = useState<'all' | 'downloded'>('all');
+  const [currentTab, setCurrentTab] = useState<'all' | 'downloaded'>('all');
 
   const packsLoaded = packs !== null;
   const downloadedPacksLoaded = downloadedPacks !== null;
@@ -57,7 +57,7 @@ export default function Packs( {
   ]);
 
   useEffect(() => {
-    if (downloadedPacksLoaded) {
+    if (!downloadedPacksLoaded) {
       setLoadingLocal(true);
       listLocal()
         .then(localPacks => setDownloadedPacks(localPacks))
@@ -91,7 +91,7 @@ export default function Packs( {
         <TabContext value={currentTab}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <TabList
-              onChange={(event: React.SyntheticEvent, newVal: "all" | "downloaded") => setCurrentTab(newVal)}
+              onChange={(_event: React.SyntheticEvent, newVal: "all" | "downloaded") => setCurrentTab(newVal)}
               aria-label="Packs"
             >
               <Tab label="All" value="all" />
@@ -102,7 +102,8 @@ export default function Packs( {
             {loading && !isOffline && <CircularProgress />}
             {isOffline && (
               <DialogContentText sx={{textAlign: 'center'}}>
-                {"Looks like you're offline. You can choose packs from the Downloaded section or try again when you're online."}
+                {"Looks like you're offline. You can choose packs from the Downloaded section or try again when " + 
+                 "you're online."}
               </DialogContentText>
             )}
             <List>

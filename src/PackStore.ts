@@ -123,9 +123,14 @@ class Manifest {
   }
 }
 
+interface DownloadOptions {
+  onProgress?: (value: { loadedBytes: number, totalBytes: number }) => void;
+  signal?: AbortSignal;
+}
+
 export interface PackStore {
   currentPackId: string | null;
-  download: (packId: string) => Promise<void>;
+  download: (packId: string, options?: DownloadOptions) => Promise<void>;
   get: (packId: string) => Promise<Pack | undefined>;
   getCurrentPackId: ( ) => Promise<string | null>;
   list: ( ) => Promise<Pack[]>;
@@ -141,12 +146,12 @@ const prefStore = localforage.createInstance({ name: 'prefStore' });
 
 export function usePackStore( ): PackStore {
   const [manifest, setManifest] = useState<Manifest | undefined>( undefined );
-  const [currentPackId, setCurrentPackId] = useState<string | null>( null );
+  const [currentPackId, _setCurrentPackId] = useState<string | null>( null );
   const [error, setError] = useState<Error | null>(null);
 
   useEffect( () => {
     prefStore.getItem<string>("currentPackId")
-      .then(setCurrentPackId)
+      .then(_setCurrentPackId)
       .catch(e => console.error("Failed to get currentPackId: ", e))
   }, []);
 
@@ -173,10 +178,15 @@ export function usePackStore( ): PackStore {
     return manifest?.packs.find((pack: Pack) => pack.id === packId);
   }
 
-  function setCurrent(packId: string) {
-    setCurrentPackId(packId);
-    prefStore.setItem("currentPackId", packId)
-      .catch( e => console.error( "Failed to get currentPackId: ", e))
+  function setCurrent(packId: string | null) {
+    _setCurrentPackId(packId);
+    if (packId) {
+      prefStore.setItem('currentPackId', packId)
+        .catch( e => console.error( 'Failed to get currentPackId: ', e));
+    } else {
+      prefStore.removeItem('currentPackId')
+        .catch(e => console.error('Failed to remove currentPackId: ', e));
+    }
   }
 
   async function list() {
@@ -197,13 +207,40 @@ export function usePackStore( ): PackStore {
     return localPacks.flat() as Pack[];
   }
 
-  async function download(packId: string) {
+  async function download(packId: string, options?: DownloadOptions) {
+    const opts = options || {};
     const pack = await get(packId);
     if (!pack) throw new Error("Can't unknown pack");
-    const resp = await fetch( `https://static.underfoot.rocks/${pack.pmtilesPath}` );
-    const blob = await resp.blob( );
-    // const unzippedPack: Pack = await unzipPack( blob );
-    // TODO need a stronger class definition of what a pack is
+    const resp = await fetch( `https://static.underfoot.rocks/${pack.pmtilesPath}`, {signal: opts.signal} );
+
+    // Start chunked download with progress, based on https://javascript.info/fetch-progress
+    const reader = resp?.body?.getReader();
+    if (!reader) throw new Error(`Could not download pack: ${packId}`);
+    const contentLength = resp?.headers?.get('Content-Length');
+    const totalBytes = contentLength ? parseInt(contentLength, 10) : null;
+    let receivedLength = 0;
+    const chunks = [];
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) {
+        break;
+      }
+      chunks.push(value);
+      receivedLength += value.length;
+      if (totalBytes && typeof (opts.onProgress) === 'function') {
+        opts.onProgress({loadedBytes: receivedLength, totalBytes});
+      }
+    }
+    const chunksAll = new Uint8Array(receivedLength);
+    let position = 0;
+    for(const chunk of chunks) {
+      chunksAll.set(chunk, position);
+      position += chunk.length;
+    }
+    const blob = new Blob([chunksAll]);
+
+    // Create a pack object with that blob
     const storedPack = new Pack({
       admin1: pack.admin1,
       admin2: pack.admin2,
@@ -213,13 +250,14 @@ export function usePackStore( ): PackStore {
       name: pack.name,
       updated_at: pack.updatedAt,
     }, blob);
+    // Save that pack to disk
     await packStore.setItem(packId, storedPack);
-    if (!currentPackId) setCurrentPackId(packId);
+    if (!currentPackId) setCurrent(packId);
   }
 
   async function remove(packId: string) {
     await packStore.removeItem(packId);
-    if (currentPackId === packId) setCurrentPackId(null);
+    if (currentPackId === packId) setCurrent(null);
   }
 
   return {
