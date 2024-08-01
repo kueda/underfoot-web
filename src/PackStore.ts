@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import localforage from 'localforage';
 import jszip from 'jszip';
 
-export interface UnzippedPackData {
-  context?: Blob,
-  contours?: Blob,
-  rocks?: Blob,
-  water?: Blob,
-  ways?: Blob
+export type UnzippedPackData = {
+  context_pmtiles?: Blob;
+  contours_pmtiles?: Blob;
+  rocks_citations_csv?: Blob;
+  rocks_units_csv?: Blob;
+  rocks_pmtiles?: Blob;
+  water_citations_csv?: Blob;
+  water_waterways_network_csv?: Blob;
+  water_pmtiles?: Blob;
+  ways_pmtiles?: Blob;
 }
 
 interface PackBoundingBox {
@@ -72,35 +76,48 @@ export class Pack {
 
   async unzippedData(): Promise<UnzippedPackData> {
     let zip: jszip;
+    if (!this.zippedData) throw new Error('No zipped data to unzip');
     try {
       zip = await jszip.loadAsync( this.zippedData );
     } catch ( loadAsyncErr ) {
-      console.error( "failed to load zip: ", loadAsyncErr );
+      console.error('failed to load zip: ', loadAsyncErr);
       return {};
     }
     const unzipped: UnzippedPackData = {};
     const zipPaths: string[] = [];
     zip.forEach( path => zipPaths.push( path ) );
     await Promise.all( zipPaths.map( async path => {
-      const key = path.split( "/" ).pop( )?.replace( /\..+$/, "" );
-      if ( !key || !zip.file( path ) || zip.file( path )?.dir ) return;
+      const fname = path.split( "/" ).pop( );
+      if ( !fname || !zip.file( path ) || zip.file( path )?.dir ) return;
       const data = await zip.file( path )?.async( "blob" );
       if (!data) return;
-      switch ( key ) {
-      case 'rocks':
-        unzipped.rocks = data;
+      switch ( fname ) {
+      case 'rocks.pmtiles':
+        unzipped.rocks_pmtiles = data;
         break;
-      case 'water':
-        unzipped.water = data;
+      case 'water.pmtiles':
+        unzipped.water_pmtiles = data;
         break;
-      case 'ways':
-        unzipped.ways = data;
+      case 'ways.pmtiles':
+        unzipped.ways_pmtiles = data;
         break;
-      case 'contours':
-        unzipped.contours = data;
+      case 'contours.pmtiles':
+        unzipped.contours_pmtiles = data;
         break;
-      case 'context':
-        unzipped.context = data;
+      case 'context.pmtiles':
+        unzipped.context_pmtiles = data;
+        break;
+      case 'rocks-citations.csv':
+        unzipped.rocks_citations_csv = data;
+        break;
+      case 'rocks-rock_units_attrs.csv':
+        unzipped.rocks_units_csv = data;
+        break;
+      case 'water-citations.csv':
+        unzipped.water_citations_csv = data;
+        break;
+      case 'water-waterways-network.csv':
+        unzipped.water_waterways_network_csv = data;
         break;
       }
     } ) );
@@ -139,6 +156,24 @@ export interface PackStore {
   remove: (packId: string) => Promise<void>;
   setCurrent: (packId: string) => void;
   error: Error | null;
+}
+
+export interface RockUnit {
+  citation?: string;
+  code: string;
+  controlled_span?: string;
+  description?: string;
+  est_age?: number;
+  formation?: string;
+  grouping?: string;
+  id: number;
+  lithology: string;
+  max_age?: number;
+  min_age?: string;
+  rock_type?: string;
+  source: string;
+  span?: string;
+  title?: string;
 }
 
 const packStore = localforage.createInstance({ name: 'packStore' });
@@ -211,7 +246,8 @@ export function usePackStore( ): PackStore {
     const opts = options || {};
     const pack = await get(packId);
     if (!pack) throw new Error("Can't unknown pack");
-    const resp = await fetch( `https://static.underfoot.rocks/${pack.pmtilesPath}`, {signal: opts.signal} );
+    const url = `https://static.underfoot.rocks/${pack.pmtilesPath}`;
+    const resp = await fetch(url, {signal: opts.signal});
 
     // Start chunked download with progress, based on https://javascript.info/fetch-progress
     const reader = resp?.body?.getReader();
@@ -252,7 +288,9 @@ export function usePackStore( ): PackStore {
     }, blob);
     // Save that pack to disk
     await packStore.setItem(packId, storedPack);
-    if (!currentPackId) setCurrent(packId);
+    if (!currentPackId) {
+      setCurrent(packId);
+    }
   }
 
   async function remove(packId: string) {
