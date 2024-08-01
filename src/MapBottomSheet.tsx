@@ -1,5 +1,5 @@
 import { Drawer as Vaul } from 'vaul';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -39,6 +39,15 @@ function humanizeAge(age?: string | number) {
 
 function MapBottomSheet({ feature }: Props) {
   const [snap, setSnap] = useState<number | string | null | undefined>(CLOSED_HEIGHT);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  // If the description is more than twice the height of the body, treat it as
+  // scrollable. Allowing scrolling messes up the drag to dismiss
+  // interaction, so it should be avoided when we don't have to scroll to
+  // show content
+  const scrollable = (descRef?.current?.clientHeight || 0) >= (bodyRef?.current?.clientHeight || 0) / 2;
+
   return (
     <Vaul.Root
       open
@@ -58,11 +67,11 @@ function MapBottomSheet({ feature }: Props) {
             left: 0,
             right: 0,
             // the rest is gravy
-            backgroundColor: "white",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
             zIndex: 1101
           }}
         >
-          <div className={`MapBottomSheet ${snap === 1 ? 'open': ''}`}>
+          <div className={`MapBottomSheet ${snap === 1 ? 'open': ''} ${scrollable ? 'scrollable' : ''}`}>
             <div
               className="MapBottomSheetHeader"
               style={{ height: CLOSED_HEIGHT }}
@@ -94,9 +103,13 @@ function MapBottomSheet({ feature }: Props) {
                 </IconButton>
               </div>
             </div>
-            <div className="MapBottomSheetBody">
-              <h3>Description</h3>
-              <p>{feature?.description}</p>
+            <div className="MapBottomSheetBody" ref={bodyRef}>
+              { feature?.description && (
+                <>
+                  <h3>Description</h3>
+                  <p ref={descRef}>{feature?.description}</p>
+                </>
+              ) }
               <h3>Estimated Age</h3>
               <p>{startCase(feature?.controlled_span)} ({humanizeAge(feature?.min_age)} - {humanizeAge(feature?.max_age)})</p>
               <h4>Source</h4>

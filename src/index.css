@@ -18,6 +18,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overscroll-behavior: none;
+  overflow: hidden;
 }
 
 @media (prefers-color-scheme: light) {
@@ -138,6 +139,9 @@ body {
 
 .MapBottomSheetBody {
   padding: 0 20px 20px 20px;
+  height: 100%;
+}
+
+.scrollable .MapBottomSheetBody {
   overflow-y: auto;
-  flex-grow: 2;
 }
