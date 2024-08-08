@@ -11,10 +11,12 @@ import Drawer from './Drawer'
 
 interface Props {
   currentPackId: string | null;
+  mapType: 'rocks' | 'water';
+  setMapType: (newMapType: 'rocks' | 'water') => void;
   showPacksModal: ( ) => void;
 }
 
-export default function UnderfootAppBar({ showPacksModal }: Props) {
+export default function UnderfootAppBar({ mapType, setMapType, showPacksModal }: Props) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const handleDrawerToggle = () => {
     setDrawerOpen(prevState => !prevState);
@@ -24,7 +26,9 @@ export default function UnderfootAppBar({ showPacksModal }: Props) {
     <>
       <Drawer
         drawerOpen={drawerOpen}
+        mapType={mapType}
         setDrawerOpen={setDrawerOpen}
+        setMapType={setMapType}
         showPacksModal={showPacksModal}
       />
       <Box sx={{ display: 'flex' }}>

@@ -13,13 +13,17 @@ import WaterIcon from '@mui/icons-material/Water';
 
 interface DrawerProps {
   drawerOpen: boolean;
+  mapType: 'rocks' | 'water';
   setDrawerOpen: (newVal: boolean) => void;
+  setMapType: (newMapType: 'rocks' | 'water') => void;
   showPacksModal: ( ) => void;
 }
 
 export default function UnderfootDrawer({
   drawerOpen,
+  mapType,
   setDrawerOpen,
+  setMapType,
   showPacksModal
 }: DrawerProps) {
 	return (
@@ -31,7 +35,7 @@ export default function UnderfootDrawer({
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setDrawerOpen(false)}>
           <List>
             <ListItem disablePadding>
-              <ListItemButton disabled>
+              <ListItemButton selected={mapType === 'rocks'} onClick={() => setMapType('rocks')}>
                 <ListItemIcon>
                   <LandscapeIcon />
                 </ListItemIcon>
@@ -39,7 +43,7 @@ export default function UnderfootDrawer({
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton disabled>
+              <ListItemButton selected={mapType === 'water'} onClick={() => setMapType('water')}>
                 <ListItemIcon>
                   <WaterIcon />
                 </ListItemIcon>

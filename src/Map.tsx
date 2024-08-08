@@ -9,8 +9,8 @@ import AddIcon from '@mui/icons-material/Add';
 import Papa from 'papaparse';
 
 import MapBottomSheet from './MapBottomSheet';
-import { RockUnit, usePackStore } from './PackStore';
-import { NO_STYLE, ROCK_STYLE } from './mapStyles';
+import { UnderfootFeature, usePackStore, UnzippedPackData } from './PackStore';
+import { NO_STYLE, ROCK_STYLE, WATER_STYLE } from './mapStyles';
 
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
@@ -31,11 +31,12 @@ maplibregl.addProtocol('pmtiles', (request) => {
 
 interface Props {
   currentPackId: string | null;
+  mapType: 'rocks' | 'water';
   showPacksModal: ( ) => void;
 }
 
-interface RockUnits {
-  [id: number]: RockUnit
+interface UnderfootFeatures {
+  [id: number]: UnderfootFeature
 }
 
 interface Citation {
@@ -47,17 +48,91 @@ interface Citations {
   [source: string]: string
 }
 
-export default function UnderfootMap({currentPackId, showPacksModal}: Props) {
+function loadMapFromPackData(
+  packData: UnzippedPackData,
+  protocol: pmtiles.Protocol,
+  map: maplibregl.Map,
+  mapType: string,
+  setFeatures: React.Dispatch<React.SetStateAction<UnderfootFeatures>>,
+  setCitations: React.Dispatch<React.SetStateAction<Citations>>,
+) {
+  let pmtilesBlob: Blob | undefined;
+  let featuresBlob: Blob | undefined;
+  let citationsBlob: Blob | undefined;
+  let style: maplibregl.StyleSpecification;
+  if (mapType === 'rocks') {
+    pmtilesBlob = packData.rocks_pmtiles;
+    featuresBlob = packData.rocks_units_csv;
+    citationsBlob = packData.rocks_citations_csv;
+    style = ROCK_STYLE;
+  } else {
+    pmtilesBlob = packData.water_pmtiles;
+    citationsBlob = packData.water_citations_csv;
+    style = WATER_STYLE;
+  }
+  if (!pmtilesBlob) throw new Error(`Pack did not have ${mapType} data`);
+  if (!citationsBlob) throw new Error(`Pack did not have ${mapType} citations`);
+
+  const pmtilesData = new pmtiles.PMTiles(
+    new pmtiles.FileSource(new File([pmtilesBlob], mapType))
+  );
+  protocol.add(pmtilesData);
+  map.setStyle(style);
+  if (featuresBlob) {
+    Papa.parse(new File([featuresBlob], `${mapType}_metadata`), {
+      header: true,
+      dynamicTyping: true,
+      complete: results => {
+        const emptyFeatures: UnderfootFeatures = {};
+        const newFeatures = results.data.reduce((memo, curr) => {
+          const feature = curr as UnderfootFeature;
+          const featuresMemo: UnderfootFeatures = memo as UnderfootFeatures;
+          featuresMemo[feature.id] = feature;
+          return featuresMemo;
+        }, emptyFeatures);
+        console.log('[Map.tsx] newFeatures', newFeatures)
+        setFeatures(newFeatures as UnderfootFeatures);
+      }
+    });
+  }
+  if (citationsBlob) {
+    Papa.parse(new File([citationsBlob], `${mapType}_citations`), {
+      header: true,
+      dynamicTyping: true,
+      complete: results => {
+        const emptyCitations: Citations = {};
+        const newCitations = results.data.reduce((memo, curr) => {
+          const citation = curr as Citation;
+          const citationsMemo: Citations = memo as Citations;
+          citationsMemo[citation.source] = citation.citation;
+          return citationsMemo;
+        }, emptyCitations) as Citations;
+        setCitations((existing: Citations) => ({...existing, ...newCitations}));
+      }
+    });
+  }
+}
+
+export default function UnderfootMap({
+  currentPackId,
+  showPacksModal,
+  mapType = 'rocks'
+}: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<Map>();
   const packStore = usePackStore( );
   const [loadedPackId, setLoadedPackId] = useState<string | null>(null);
+  const [loadedMapType, setLoadedMapType] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [packLoading, setPackLoading] = useState(false);
   const [mapFeature, setMapFeature] = useState<MapGeoJSONFeature>();
-  const [rockFeature, setRockFeature] = useState<RockUnit>();
-  const [rockUnits, setRockUnits] = useState<RockUnits>({});
+  const [underfootFeature, setUnderfootFeature] = useState<UnderfootFeature>();
+  const [underfootFeatures, setUnderfootFeatures] = useState<UnderfootFeatures>({});
   const [citations, setCitations] = useState<Citations>({});
+
+  // props
+  const sourceLayer = 'rock_units';
+  // /props
 
   useEffect( ( ) => {
     if ( map.current ) return;
@@ -79,7 +154,7 @@ export default function UnderfootMap({currentPackId, showPacksModal}: Props) {
       //   .setLngLat([lng,lat])
       //   .addTo(map.current);
       if (features.length > 0) {
-        const feature = features.find(f => f.sourceLayer === 'rock_units');
+        const feature = features.find(f => f.sourceLayer === sourceLayer);
         setMapFeature(feature);
       } else {
         setMapFeature(undefined);
@@ -88,20 +163,20 @@ export default function UnderfootMap({currentPackId, showPacksModal}: Props) {
   }, [map, mapContainer] );
 
   useEffect(() => {
-    if (rockUnits && mapFeature?.properties.id) {
-      const rockUnit = rockUnits[parseInt(String(mapFeature.properties.id), 10)];
-      if (citations && rockUnit?.source && !rockUnit.citation) {
-        rockUnit.citation = citations[rockUnit.source];
+    if (underfootFeatures && mapFeature?.properties.id) {
+      const feature = underfootFeatures[parseInt(String(mapFeature.properties.id), 10)];
+      if (citations && feature?.source && !feature.citation) {
+        feature.citation = citations[feature.source];
       }
-      setRockFeature(rockUnit);
+      setUnderfootFeature(feature);
     } else {
-      setRockFeature(undefined);
+      setUnderfootFeature(undefined);
     }
-  }, [citations, mapFeature, rockUnits]);
+  }, [citations, mapFeature, underfootFeatures]);
 
   useEffect( ( ) => {
     async function changePack() {
-      if (currentPackId === loadedPackId) return;
+      if (currentPackId === loadedPackId && mapType === loadedMapType) return;
       if (!map.current) return;
       if (packLoading) return;
       setPackLoading(true);
@@ -124,63 +199,38 @@ export default function UnderfootMap({currentPackId, showPacksModal}: Props) {
         )
       );
       protocol.add(waysPmtiles);
-      if (!packData.rocks_pmtiles) throw new Error(`Pack ${currentPackId} did not have rocks data`);
-      const rocksPmtiles = new pmtiles.PMTiles(
-        new pmtiles.FileSource(new File([packData.rocks_pmtiles], "rocks"))
+
+      loadMapFromPackData(
+        packData,
+        protocol,
+        map.current,
+        mapType,
+        setUnderfootFeatures,
+        setCitations
       );
-      protocol.add(rocksPmtiles);
-      map.current.setStyle(ROCK_STYLE);
-      if (packData.rocks_units_csv) {
-        Papa.parse(new File([packData.rocks_units_csv], 'rocks_units_csv'), {
-          header: true,
-          dynamicTyping: true,
-          complete: results => {
-            const emptyRockUnits: RockUnits = {};
-            const newUnits = results.data.reduce((memo, curr) => {
-              const rockUnit = curr as RockUnit;
-              const rockUnitsMemo: RockUnits = memo as RockUnits;
-              rockUnitsMemo[rockUnit.id] = rockUnit;
-              return rockUnitsMemo;
-            }, emptyRockUnits);
-            setRockUnits(newUnits as RockUnits);
-          }
-        });
-      }
-      if (packData.rocks_citations_csv) {
-        Papa.parse(new File([packData.rocks_citations_csv], 'citations_csv'), {
-          header: true,
-          dynamicTyping: true,
-          complete: results => {
-            const emptyCitations: Citations = {};
-            const newCitations = results.data.reduce((memo, curr) => {
-              const citation = curr as Citation;
-              const citationsMemo: Citations = memo as Citations;
-              citationsMemo[citation.source] = citation.citation;
-              return citationsMemo;
-            }, emptyCitations) as Citations;
-            setCitations((existing: Citations) => ({...existing, ...newCitations}));
-          }
-        });
-      }
+
       const waysHeader = await waysPmtiles.getHeader( );
       map.current.setZoom(waysHeader.maxZoom - 2);
       map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat])
       setLoadedPackId(currentPackId);
+      setLoadedMapType(mapType);
       setPackLoading(false);
     }
     if (
       packStore
-      && currentPackId !== loadedPackId
+      && ( currentPackId !== loadedPackId || mapType !== loadedMapType )
       && map.current
     ) {
       changePack().catch(e => console.error(`Failed to change to pack ${currentPackId}`, e));
     }
   }, [
-    packLoading,
-    packStore,
     currentPackId,
+    loadedMapType,
+    loadedPackId,
     mapLoaded,
-    loadedPackId
+    mapType,
+    packLoading,
+    packStore
   ])
 
   return (
@@ -189,7 +239,7 @@ export default function UnderfootMap({currentPackId, showPacksModal}: Props) {
       { loadedPackId && (
         <>
           <AddIcon fontSize='large' className="add-icon" />
-          <MapBottomSheet feature={rockFeature} />
+          <MapBottomSheet feature={underfootFeature} />
         </>
       ) }
       { !loadedPackId && !packLoading && (

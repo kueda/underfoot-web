@@ -13,6 +13,7 @@ import {usePackStore} from './PackStore';
 
 function App() {
   const [currentPackId, setCurrentPackId] = React.useState<string | null>(null);
+  const [mapType, setMapType] = React.useState<'rocks' | 'water'>('rocks');
   const [packsModalShown, setPacksModalShown] = React.useState(false);
   const packStore = usePackStore();
   const theme = useTheme();
@@ -35,9 +36,15 @@ function App() {
       <CssBaseline />
       <AppBar
         currentPackId={currentPackId}
+        mapType={mapType}
+        setMapType={setMapType}
         showPacksModal={() => setPacksModalShown(true)}
       />
-      <Map currentPackId={currentPackId} showPacksModal={() => setPacksModalShown(true)} />
+      <Map
+        mapType={mapType}
+        currentPackId={currentPackId}
+        showPacksModal={() => setPacksModalShown(true)}
+      />
       <Dialog
         open={packsModalShown}
         fullScreen={isSmall}

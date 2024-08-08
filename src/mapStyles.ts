@@ -1,4 +1,8 @@
-import { StyleSpecification } from 'maplibre-gl';
+import {
+  DataDrivenPropertyValueSpecification,
+  LayerSpecification,
+  StyleSpecification
+} from 'maplibre-gl';
 
 const NO_STYLE: StyleSpecification = {
   version: 8,
@@ -6,8 +10,79 @@ const NO_STYLE: StyleSpecification = {
   layers: []
 };
 
-const ROCK_STYLE: StyleSpecification = {
+const waysLayers: LayerSpecification[] = [
+  {
+    id: 'ways',
+    source: 'ways',
+    'source-layer': 'underfoot_ways',
+    type: 'line',
+    filter: ['match', ['get', 'highway'], ['motorway', 'primary', 'trunk', 'secondary', 'tertiary', 'path', 'track'], false, true],
+    paint: {
+      'line-color': 'rgb(80,80,80)',
+      'line-width': 1.6
+    }
+  },
+  {
+    id: 'highways',
+    source: 'ways',
+    'source-layer': 'underfoot_ways',
+    type: 'line',
+    filter: ['match', ['get', 'highway'], ['motorway', 'primary', 'trunk'], true, false],
+    paint: {
+      'line-color': 'rgb(80,80,80)',
+      'line-width': 3
+    }
+  },
+  {
+    id: 'roads',
+    source: 'ways',
+    'source-layer': 'underfoot_ways',
+    type: 'line',
+    filter: ['match', ['get', 'highway'], ['secondary', 'tertiary'], true, false],
+    paint: {
+      'line-color': 'rgb(80,80,80)',
+      'line-width': 1.6
+    }
+  },
+  {
+    id: 'trails',
+    source: 'ways',
+    'source-layer': 'underfoot_ways',
+    type: 'line',
+    filter: ['match', ['get', 'highway'], ['path', 'track'], true, false],
+    paint: {
+      'line-color': 'rgb(80,80,80)',
+      'line-width': 1.6,
+      'line-dasharray': [2,1]
+    }
+  },
+  {
+    id: 'ways-labels',
+    source: 'ways',
+    'source-layer': 'underfoot_ways',
+    type: 'symbol',
+    paint: {
+      'text-halo-color': 'white',
+      'text-halo-width': 1
+    },
+    layout: {
+      'symbol-placement': 'line',
+      'text-size': 10,
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold']
+    }
+  },
+]
+
+const COMMON_STYLE: StyleSpecification = {
   version: 8,
+  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  sources: {},
+  layers: []
+}
+
+const ROCK_STYLE: StyleSpecification = {
+  ...COMMON_STYLE,
   sources: {
     rocks: {
       type: 'vector',
@@ -263,56 +338,103 @@ const ROCK_STYLE: StyleSpecification = {
         'line-width': 1.5
       }
     },
-    {
-      id: 'ways',
-      source: 'ways',
-      'source-layer': 'underfoot_ways',
-      type: 'line',
-      filter: ['match', ['get', 'highway'], ['motorway', 'primary', 'trunk', 'secondary', 'tertiary', 'path', 'track'], false, true],
-      paint: {
-        'line-color': 'rgb(80,80,80)',
-        'line-width': 1.6
-      }
-    },
-    {
-      id: 'highways',
-      source: 'ways',
-      'source-layer': 'underfoot_ways',
-      type: 'line',
-      filter: ['match', ['get', 'highway'], ['motorway', 'primary', 'trunk'], true, false],
-      paint: {
-        'line-color': 'rgb(80,80,80)',
-        'line-width': 3
-      }
-    },
-    {
-      id: 'roads',
-      source: 'ways',
-      'source-layer': 'underfoot_ways',
-      type: 'line',
-      filter: ['match', ['get', 'highway'], ['secondary', 'tertiary'], true, false],
-      paint: {
-        'line-color': 'rgb(80,80,80)',
-        'line-width': 1.6
-      }
-    },
-    {
-      id: 'trails',
-      source: 'ways',
-      'source-layer': 'underfoot_ways',
-      type: 'line',
-      filter: ['match', ['get', 'highway'], ['path', 'track'], true, false],
-      paint: {
-        'line-color': 'rgb(80,80,80)',
-        'line-width': 1.6,
-        'line-dasharray': [2,1]
-      }
-    }
+    ...waysLayers
   ]
 };
 
+const WATERWAYS_COLOR_EXP: DataDrivenPropertyValueSpecification<string> = [
+  // https://maplibre.org/maplibre-style-spec/expressions/#match
+  'match',
+
+  // input
+  ['get', 'is_natural'],
+
+  // mappings
+  [0], '#FF7F00',
+
+  '#1F78B4'
+];
+
+const WATER_STYLE: StyleSpecification = {
+  ...COMMON_STYLE,
+  sources: {
+    water: {
+      type: 'vector',
+      // this is pmtiles://[[protocol key]]/{z}/{x}/{y}, so the file name we declared earlier gets used here
+      tiles: ["pmtiles://water/{z}/{x}/{y}"],
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
+    },
+    ways: {
+      type: 'vector',
+      tiles: ["pmtiles://ways/{z}/{x}/{y}"],
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
+    }
+  },
+  layers: [
+    {
+      id: 'watersheds',
+      source: 'water',
+      // minzoom: 12,
+      'source-layer': 'watersheds',
+      type: 'fill',
+      paint: {
+        'fill-color': '#CFC4AF'
+      }
+    },
+    {
+      id: 'watersheds-lines',
+      source: 'water',
+      // minzoom: 12,
+      'source-layer': 'watersheds',
+      type: 'line',
+      paint: {
+        'line-color': 'rgba(255,255,255,0.9)',
+        'line-width': 1.5
+      }
+    },
+    {
+      id: 'waterbodies',
+      source: 'water',
+      'source-layer': 'waterbodies',
+      type: 'fill',
+      paint: {
+        'fill-color': '#1F78B4'
+      }
+    },
+    {
+      id: 'waterways',
+      source: 'water',
+      'source-layer': 'waterways',
+      type: 'line',
+      paint: {
+        // 'line-color': '#1F78B4',
+        'line-width': 2,
+        'line-color': WATERWAYS_COLOR_EXP
+      }
+    },
+    ...waysLayers,
+    {
+      id: 'waterways-labels',
+      source: 'water',
+      'source-layer': 'waterways',
+      type: 'symbol',
+      paint: {
+        'text-halo-color': 'white',
+        'text-halo-width': 1,
+        'text-color': WATERWAYS_COLOR_EXP
+      },
+      layout: {
+        'symbol-placement': 'line',
+        'text-size': 10,
+        'text-field': ['get', 'name'],
+        'text-font': ['Noto Sans Bold']
+      }
+    },
+  ]
+};
 
 export {
   NO_STYLE,
-  ROCK_STYLE
+  ROCK_STYLE,
+  WATER_STYLE
 };

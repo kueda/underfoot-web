@@ -158,20 +158,23 @@ export interface PackStore {
   error: Error | null;
 }
 
-export interface RockUnit {
+export interface UnderfootFeature {
   citation?: string;
+  id: number;
+  source: string;
+}
+
+export interface RockUnit extends UnderfootFeature {
   code: string;
   controlled_span?: string;
   description?: string;
   est_age?: number;
   formation?: string;
   grouping?: string;
-  id: number;
   lithology: string;
   max_age?: number;
   min_age?: string;
   rock_type?: string;
-  source: string;
   span?: string;
   title?: string;
 }

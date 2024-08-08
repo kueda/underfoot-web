@@ -6,10 +6,10 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { startCase } from 'lodash';
 import Autolinker from 'autolinker';
 
-import { RockUnit } from "./PackStore";
+import { UnderfootFeature } from "./PackStore";
 
 interface Props {
-  feature?: RockUnit;
+  feature?: UnderfootFeature;
 }
 
 const CLOSED_HEIGHT = '90px';
