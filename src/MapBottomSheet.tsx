@@ -6,10 +6,11 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { startCase } from 'lodash';
 import Autolinker from 'autolinker';
 
-import { UnderfootFeature } from "./PackStore";
+import { RockUnit, UnderfootFeature } from "./PackStore";
 
 interface Props {
-  feature?: UnderfootFeature;
+  feature?: UnderfootFeature | RockUnit;
+  mapType: 'rocks' | 'water'
 }
 
 const CLOSED_HEIGHT = '90px';
@@ -37,7 +38,78 @@ function humanizeAge(age?: string | number) {
   return `${ageNum.toLocaleString()} years`;
 }
 
-function MapBottomSheet({ feature }: Props) {
+function RocksHeader( { feature }: { feature?: RockUnit } ) {
+  return (
+    <>
+      <h3>
+        {feature?.title || 'Unknown'}
+      </h3>
+      <div className="MapBottomSheetHeaderPreview">
+        <div>
+          <label>Lithology</label>
+          {startCase(feature?.lithology || 'Unknown')}
+        </div>
+        <div>
+          <label>Age</label>
+          {feature?.est_age ? humanizeAge(feature.est_age) : 'Unknown'}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function WaterHeader( { feature }: { feature?: UnderfootFeature } ) {
+  return (
+    <>
+      <h3>
+        {feature?.title || 'Unknown'}
+      </h3>
+      <div className="MapBottomSheetHeaderPreview">
+        <div>{ "it's water, ok?" }</div>
+      </div>
+    </>
+  );
+}
+
+function RocksBody( { feature, descRef }: {
+  feature?: RockUnit,
+  descRef: React.RefObject<HTMLParagraphElement>
+} ) {
+  return (
+    <>
+      { feature?.description && (
+        <>
+          <h3>Description</h3>
+          <p ref={descRef}>{feature?.description}</p>
+        </>
+      ) }
+      <h3>Estimated Age</h3>
+      <p>{startCase(feature?.controlled_span)} ({humanizeAge(feature?.min_age)} - {humanizeAge(feature?.max_age)})</p>
+      <h4>Source</h4>
+      <small
+        dangerouslySetInnerHTML={{
+          __html: feature?.citation
+            ? Autolinker.link(feature.citation)
+            : feature?.source || ""
+        }}
+      />
+    </>
+  );
+}
+
+function WaterBody( { feature, descRef }: {
+  feature?: UnderfootFeature,
+  descRef: React.RefObject<HTMLParagraphElement>
+} ) {
+  return (
+    <>
+      <h3>Description</h3>
+      <p ref={descRef}>{feature?.title}</p>
+    </>
+  );
+}
+
+function MapBottomSheet({ feature, mapType }: Props) {
   const [snap, setSnap] = useState<number | string | null | undefined>(CLOSED_HEIGHT);
   const bodyRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
@@ -77,19 +149,10 @@ function MapBottomSheet({ feature }: Props) {
               style={{ height: CLOSED_HEIGHT }}
             >
               <div className="MapBottomSheetHeaderContent">
-                <h3>
-                  {feature?.title || 'Unknown'}
-                </h3>
-                <div className="MapBottomSheetHeaderPreview">
-                  <div>
-                    <label>Lithology</label>
-                    {startCase(feature?.lithology || 'Unknown')}
-                  </div>
-                  <div>
-                    <label>Age</label>
-                    {feature?.est_age ? humanizeAge(feature.est_age) : 'Unknown'}
-                  </div>
-                </div>
+                { mapType === 'rocks'
+                  ? <RocksHeader feature={feature as RockUnit} />
+                  : <WaterHeader feature={feature} />
+                }
               </div>
               <div className="MapBottomSheetHeaderActions">
                 <IconButton
@@ -104,22 +167,10 @@ function MapBottomSheet({ feature }: Props) {
               </div>
             </div>
             <div className="MapBottomSheetBody" ref={bodyRef}>
-              { feature?.description && (
-                <>
-                  <h3>Description</h3>
-                  <p ref={descRef}>{feature?.description}</p>
-                </>
-              ) }
-              <h3>Estimated Age</h3>
-              <p>{startCase(feature?.controlled_span)} ({humanizeAge(feature?.min_age)} - {humanizeAge(feature?.max_age)})</p>
-              <h4>Source</h4>
-              <small
-                dangerouslySetInnerHTML={{
-                  __html: feature?.citation
-                    ? Autolinker.link(feature.citation)
-                    : feature?.source || ""
-                }}
-              />
+              { mapType === 'rocks'
+                ? <RocksBody feature={feature as RockUnit} descRef={descRef} />
+                : <WaterBody feature={feature} descRef={descRef} />
+              }
             </div>
           </div>
         </Vaul.Content>

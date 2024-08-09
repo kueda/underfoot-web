@@ -162,6 +162,7 @@ export interface UnderfootFeature {
   citation?: string;
   id: number;
   source: string;
+  title?: string;
 }
 
 export interface RockUnit extends UnderfootFeature {

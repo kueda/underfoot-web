@@ -239,7 +239,7 @@ export default function UnderfootMap({
       { loadedPackId && (
         <>
           <AddIcon fontSize='large' className="add-icon" />
-          <MapBottomSheet feature={underfootFeature} />
+          <MapBottomSheet feature={underfootFeature} mapType={mapType} />
         </>
       ) }
       { !loadedPackId && !packLoading && (
