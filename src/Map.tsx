@@ -7,10 +7,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import Papa from 'papaparse';
-import Fab from '@mui/material/Fab';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
 
 import MapBottomSheet from './MapBottomSheet';
+import CurrentLocationButton from './CurrentLocationButton';
 import { UnderfootFeature, usePackStore, UnzippedPackData } from './PackStore';
 import { NO_STYLE, ROCK_STYLE, WATER_STYLE } from './mapStyles';
 
@@ -237,25 +236,10 @@ export default function UnderfootMap({
   return (
     <div className='map-wrapper'>
       <div className={`map ${loadedPackId ? 'loaded': ''}`} ref={mapContainer} />
-      <Fab
-        color="primary"
-        aria-label="Current location"
-        style={{position: "absolute", right: 15, bottom: 105}}
-        onClick={() => navigator.geolocation.getCurrentPosition(
-          ( position: GeolocationPosition ) => {
-            map.current?.panTo( [
-              position.coords.longitude,
-              position.coords.latitude
-            ] );
-          },
-          ( error: GeolocationPositionError ) => alert( `Failed to get current position: ${error.message}` )
-        )}
-      >
-        <MyLocationIcon />
-      </Fab>
+      <CurrentLocationButton map={map} />
       { loadedPackId && (
         <>
-          <AddIcon fontSize='large' className="add-icon" />
+          <AddIcon fontSize='large' className="add-icon" style={{pointerEvents: 'none'}} />
           <MapBottomSheet feature={underfootFeature} mapType={mapType} />
         </>
       ) }
