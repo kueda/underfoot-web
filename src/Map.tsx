@@ -159,6 +159,9 @@ export default function UnderfootMap({
       } else {
         setMapFeature(undefined);
       }
+    });
+    map.current.on('click', clickEvent => {
+      map.current?.panTo(clickEvent.lngLat);
     })
   }, [map, mapContainer] );
 
