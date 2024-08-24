@@ -96,7 +96,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
           setIsTracking(false);
         }
       });
-      map.current.on("touchend", touchEvent => {
+      map.current.on("touchend", () => {
         setIsTracking(false);
       });
     }
