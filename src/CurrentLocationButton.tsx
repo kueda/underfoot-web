@@ -96,6 +96,9 @@ const CurrentLocationButton = ( { map }: Props ) => {
           setIsTracking(false);
         }
       });
+      map.current.on("touchend", touchEvent => {
+        setIsTracking(false);
+      });
     }
   }, [map]);
 
