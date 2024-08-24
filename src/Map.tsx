@@ -224,7 +224,11 @@ export default function UnderfootMap({
       && ( currentPackId !== loadedPackId || mapType !== loadedMapType )
       && map.current
     ) {
-      changePack().catch(e => console.error(`Failed to change to pack ${currentPackId}`, e));
+      changePack().catch(e => {
+        const error = e as Error;
+        alert(`Failed to change to pack ${currentPackId}: ${error.message}`);
+        console.error(`Failed to change to pack ${currentPackId}`, error);
+      });
     }
   }, [
     currentPackId,
