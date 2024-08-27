@@ -4,7 +4,7 @@ import GpsNotFixedIcon from '@mui/icons-material/GpsNotFixed';
 import CircularProgress from '@mui/material/CircularProgress';
 import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import maplibregl, { Marker } from 'maplibre-gl';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 // https://devcodef1.com/news/1107627/custom-color-palette-in-material-ui
 declare module '@mui/material/styles' {
@@ -43,7 +43,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
   const [marker, setMarker] = useState<Marker | null>(null);
   const [watchId, setWatchId] = useState<number>();
   const [position, setPosition] = useState<GeolocationPosition>();
-  const [isTracking, setIsTracking] = useState(false);
+  const isTracking = useRef(false);
   const theme = useTheme();
   const loading = typeof ( watchId ) === 'number' && !position;
 
@@ -81,7 +81,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
   ]);
 
   useEffect(() => {
-    if (isTracking && position) {
+    if (isTracking.current && position) {
       map?.panTo({
         lat: position.coords.latitude,
         lng: position.coords.longitude
@@ -92,14 +92,14 @@ const CurrentLocationButton = ( { map }: Props ) => {
   useEffect(() => {
     map?.on('moveend', moveEvent => {
       if (moveEvent.originalEvent) {
-        setIsTracking(false);
+        isTracking.current = false;
       }
     });
   }, [map]);
 
   let icon = <GpsNotFixedIcon />;
   if (loading) icon = <CircularProgress color="white" size={25} thickness={5} />;
-  else if (isTracking) icon = <GpsFixedIcon />
+  else if (isTracking.current) icon = <GpsFixedIcon />
 
   return (
      <ThemeProvider theme={customTheme}>
@@ -108,7 +108,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
         aria-label="Current location"
         style={{position: "absolute", right: 15, bottom: 105}}
         onClick={() => {
-          setIsTracking(true);
+          isTracking.current = true;
           if (position) {
             map?.panTo( [
               position.coords.longitude,
