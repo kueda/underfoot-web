@@ -243,7 +243,7 @@ export default function UnderfootMap({
   return (
     <div className='map-wrapper'>
       <div className={`map ${loadedPackId ? 'loaded': ''}`} ref={mapContainer} />
-      <CurrentLocationButton map={map} />
+      <CurrentLocationButton map={map.current} />
       { loadedPackId && (
         <>
           <AddIcon fontSize='large' className="add-icon" style={{pointerEvents: 'none'}} />

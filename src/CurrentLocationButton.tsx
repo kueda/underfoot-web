@@ -36,7 +36,7 @@ const customTheme = createTheme({
 });
 
 interface Props {
-  map: React.MutableRefObject<maplibregl.Map | undefined>
+  map?: maplibregl.Map
 }
 
 const CurrentLocationButton = ( { map }: Props ) => {
@@ -48,7 +48,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
   const loading = typeof ( watchId ) === 'number' && !position;
 
   useEffect(() => {
-    if (!map.current) return;
+    if (!map) return;
     if (!position) return;
     if (marker) {
       marker.setLngLat({
@@ -67,9 +67,9 @@ const CurrentLocationButton = ( { map }: Props ) => {
     const newMarker = new Marker({element}).setLngLat({
       lat: position.coords.latitude,
       lng: position.coords.longitude
-    }).addTo(map.current);
+    }).addTo(map);
     setMarker(newMarker);
-    map.current?.panTo( [
+    map.panTo( [
       position.coords.longitude,
       position.coords.latitude
     ] );
@@ -82,7 +82,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
 
   useEffect(() => {
     if (isTracking && position) {
-      map.current?.panTo({
+      map?.panTo({
         lat: position.coords.latitude,
         lng: position.coords.longitude
       });
@@ -90,16 +90,11 @@ const CurrentLocationButton = ( { map }: Props ) => {
   }, [isTracking, position, map]);
 
   useEffect(() => {
-    if (map.current) {
-      map.current.on("moveend", moveEvent => {
-        if (moveEvent.originalEvent) {
-          setIsTracking(false);
-        }
-      });
-      map.current.on("touchend", () => {
+    map?.on('moveend', moveEvent => {
+      if (moveEvent.originalEvent) {
         setIsTracking(false);
-      });
-    }
+      }
+    });
   }, [map]);
 
   let icon = <GpsNotFixedIcon />;
@@ -115,7 +110,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
         onClick={() => {
           setIsTracking(true);
           if (position) {
-            map.current?.panTo( [
+            map?.panTo( [
               position.coords.longitude,
               position.coords.latitude
             ] );
