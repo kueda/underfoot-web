@@ -57,18 +57,18 @@ const CurrentLocationButton = ( { map }: Props ) => {
       });
       return;
     }
-    const element = document.createElement('div');
-    element.style.width = '15px';
-    element.style.height = '15px';
-    element.style.borderRadius = '15px';
-    element.style.backgroundColor = theme.palette.primary.main;
-    element.style.border = '2px solid white';
-    element.style.boxShadow = '0 0 5px black';
-    const newMarker = new Marker({element}).setLngLat({
-      lat: position.coords.latitude,
-      lng: position.coords.longitude
-    }).addTo(map);
-    setMarker(newMarker);
+    // const element = document.createElement('div');
+    // element.style.width = '15px';
+    // element.style.height = '15px';
+    // element.style.borderRadius = '15px';
+    // element.style.backgroundColor = theme.palette.primary.main;
+    // element.style.border = '2px solid white';
+    // element.style.boxShadow = '0 0 5px black';
+    // const newMarker = new Marker({element}).setLngLat({
+    //   lat: position.coords.latitude,
+    //   lng: position.coords.longitude
+    // }).addTo(map);
+    // setMarker(newMarker);
     map.panTo( [
       position.coords.longitude,
       position.coords.latitude
