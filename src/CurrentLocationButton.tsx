@@ -40,7 +40,8 @@ interface Props {
 }
 
 const CurrentLocationButton = ( { map }: Props ) => {
-  const [marker, setMarker] = useState<Marker | null>(null);
+  // const [marker, setMarker] = useState<Marker | null>(null);
+  const [marker] = useState<Marker | null>(null);
   const [watchId, setWatchId] = useState<number>();
   const [position, setPosition] = useState<GeolocationPosition>();
   const isTracking = useRef(false);
