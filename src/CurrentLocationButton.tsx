@@ -40,8 +40,7 @@ interface Props {
 }
 
 const CurrentLocationButton = ( { map }: Props ) => {
-  // const [marker, setMarker] = useState<Marker | null>(null);
-  const [marker] = useState<Marker | null>(null);
+  const [marker, setMarker] = useState<Marker | null>(null);
   const [watchId, setWatchId] = useState<number>();
   const [position, setPosition] = useState<GeolocationPosition>();
   const isTracking = useRef(false);
@@ -58,18 +57,19 @@ const CurrentLocationButton = ( { map }: Props ) => {
       });
       return;
     }
-    // const element = document.createElement('div');
-    // element.style.width = '15px';
-    // element.style.height = '15px';
-    // element.style.borderRadius = '15px';
-    // element.style.backgroundColor = theme.palette.primary.main;
-    // element.style.border = '2px solid white';
-    // element.style.boxShadow = '0 0 5px black';
-    // const newMarker = new Marker({element}).setLngLat({
-    //   lat: position.coords.latitude,
-    //   lng: position.coords.longitude
-    // }).addTo(map);
-    // setMarker(newMarker);
+    const element = document.createElement('div');
+    element.style.width = '15px';
+    element.style.height = '15px';
+    element.style.borderRadius = '15px';
+    element.style.backgroundColor = theme.palette.primary.main;
+    element.style.border = '2px solid white';
+    element.style.boxShadow = '0 0 5px black';
+    const newMarker = new Marker({element}).setLngLat({
+      lat: position.coords.latitude,
+      lng: position.coords.longitude
+    }).addTo(map);
+    setMarker(newMarker);
+    console.log('[CurrentLocationButton.tsx] marker setup, panning');
     map.panTo( [
       position.coords.longitude,
       position.coords.latitude
@@ -82,7 +82,9 @@ const CurrentLocationButton = ( { map }: Props ) => {
   ]);
 
   useEffect(() => {
+    console.log('[CurrentLocationButton.tsx] pan effect, isTracking.current', isTracking.current);
     if (isTracking.current && position) {
+      console.log('[CurrentLocationButton.tsx] pan effect, panning');
       map?.panTo({
         lat: position.coords.latitude,
         lng: position.coords.longitude
@@ -92,6 +94,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
 
   useEffect(() => {
     map?.on('moveend', moveEvent => {
+      console.log('[CurrentLocationButton.tsx] moveend, moveEvent.originalEvent', moveEvent.originalEvent);
       if (moveEvent.originalEvent) {
         isTracking.current = false;
       }
@@ -111,6 +114,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
         onClick={() => {
           isTracking.current = true;
           if (position) {
+            console.log('[CurrentLocationButton.tsx] onclick, panning');
             map?.panTo( [
               position.coords.longitude,
               position.coords.latitude
@@ -118,7 +122,13 @@ const CurrentLocationButton = ( { map }: Props ) => {
           }
           if (!watchId) {
             const newWatchId = navigator.geolocation.watchPosition(
-              (position: GeolocationPosition) => setPosition(position),
+              (position: GeolocationPosition) => setPosition(existing => {
+                if (
+                  existing?.coords.latitude === position.coords.latitude
+                  && existing?.coords.longitude === position.coords.longitude
+                ) return existing;
+                return position;
+              }),
               (error: GeolocationPositionError) => {
                 console.error('[CurrentLocationButton.tsx] ', error);
                 setWatchId(undefined);
