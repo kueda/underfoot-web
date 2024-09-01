@@ -138,10 +138,6 @@ export default function UnderfootMap({
     if ( map.current ) return;
     if ( !mapContainer.current ) return;
 
-    console.log(
-      '[Map.tsx] mapContainer.current.offsetHeight at map init',
-      mapContainer.current.offsetHeight
-    );
     map.current = new maplibregl.Map( {
       container: mapContainer.current,
       center: [-122, 38],

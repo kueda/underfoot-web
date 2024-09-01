@@ -69,7 +69,6 @@ const CurrentLocationButton = ( { map }: Props ) => {
       lng: position.coords.longitude
     }).addTo(map);
     setMarker(newMarker);
-    console.log('[CurrentLocationButton.tsx] marker setup, panning');
     map.panTo( [
       position.coords.longitude,
       position.coords.latitude
@@ -82,9 +81,7 @@ const CurrentLocationButton = ( { map }: Props ) => {
   ]);
 
   useEffect(() => {
-    console.log('[CurrentLocationButton.tsx] pan effect, isTracking.current', isTracking.current);
     if (isTracking.current && position) {
-      console.log('[CurrentLocationButton.tsx] pan effect, panning');
       map?.panTo({
         lat: position.coords.latitude,
         lng: position.coords.longitude
@@ -94,7 +91,6 @@ const CurrentLocationButton = ( { map }: Props ) => {
 
   useEffect(() => {
     map?.on('moveend', moveEvent => {
-      console.log('[CurrentLocationButton.tsx] moveend, moveEvent.originalEvent', moveEvent.originalEvent);
       if (moveEvent.originalEvent) {
         isTracking.current = false;
       }
@@ -114,7 +110,6 @@ const CurrentLocationButton = ( { map }: Props ) => {
         onClick={() => {
           isTracking.current = true;
           if (position) {
-            console.log('[CurrentLocationButton.tsx] onclick, panning');
             map?.panTo( [
               position.coords.longitude,
               position.coords.latitude
