@@ -10,21 +10,16 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import { useEffect, useState } from 'react';
 
-import { usePackStore, Pack } from './PackStore';
+import { usePackStore } from '../packs/usePackStore';
+import { Pack } from '../packs/Pack';
 import PackTab from './PackTab';
+import { useCurrentPackId, useHidePacksModal, useSetCurrentPackId } from '../useAppStore';
 
-interface PacksProps {
-  currentPackId: string | null,
-  onChoose: (packId: string | null) => void,
-  onClose: () => void
-}
-
-export default function Packs( {
-  currentPackId,
-  onChoose,
-  onClose
-}: PacksProps ) {
+export default function Packs() {
   const packStore = usePackStore( );
+  const currentPackId = useCurrentPackId();
+  const onChoose = useSetCurrentPackId();
+  const onClose = useHidePacksModal();
   const { list: listPacks, manifest, listLocal, error } = packStore;
   const [loading, setLoading] = useState(false);
   const [loadingLocal, setLoadingLocal] = useState(false);

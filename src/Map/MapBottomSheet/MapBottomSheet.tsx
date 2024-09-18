@@ -3,10 +3,11 @@ import { useRef, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
-import { startCase } from 'lodash';
-import Autolinker from 'autolinker';
 
-import { RockUnit, UnderfootFeature } from "./PackStore";
+import { RockUnit, UnderfootFeature } from "../../packs/types";
+import RocksHeader from './RocksHeader';
+import RocksBody from './RocksBody';
+import WaterHeader from './WaterHeader';
 
 interface Props {
   feature?: UnderfootFeature | RockUnit;
@@ -14,88 +15,6 @@ interface Props {
 }
 
 const CLOSED_HEIGHT = '90px';
-
-function humanizeAge(age?: string | number) {
-  const unknown = '?';
-  if (age === 0) return "0"
-  if (!age) return unknown;
-  let ageNum: number;
-  if (typeof (age) === 'string') {
-    ageNum = parseFloat(age);
-    if (ageNum === 0) return unknown;
-  } else {
-    ageNum = age;
-  }
-  if (ageNum >= 1000000000) {
-    return `${(ageNum / 1000000000.0).toLocaleString(undefined, {maximumFractionDigits: 1})} Ga`;
-  }
-  if (ageNum >= 1000000) {
-    return `${(ageNum / 1000000.0).toLocaleString(undefined, {maximumFractionDigits: 1})} Ma`;
-  }
-  if (ageNum >= 100000) {
-    return `${(ageNum / 1000.0).toLocaleString(undefined, {maximumFractionDigits: 1})} ka`;
-  }
-  return `${ageNum.toLocaleString()} years`;
-}
-
-function RocksHeader( { feature }: { feature?: RockUnit } ) {
-  return (
-    <>
-      <h3>
-        {feature?.title || 'Unknown'}
-      </h3>
-      <div className="MapBottomSheetHeaderPreview">
-        <div>
-          <label>Lithology</label>
-          {startCase(feature?.lithology || 'Unknown')}
-        </div>
-        <div>
-          <label>Age</label>
-          {feature?.est_age ? humanizeAge(feature.est_age) : 'Unknown'}
-        </div>
-      </div>
-    </>
-  );
-}
-
-function WaterHeader( { feature }: { feature?: UnderfootFeature } ) {
-  return (
-    <>
-      <h3>
-        {feature?.title || 'Unknown'}
-      </h3>
-      <div className="MapBottomSheetHeaderPreview">
-        <div>{ "it's water, ok?" }</div>
-      </div>
-    </>
-  );
-}
-
-function RocksBody( { feature, descRef }: {
-  feature?: RockUnit,
-  descRef: React.RefObject<HTMLParagraphElement>
-} ) {
-  return (
-    <>
-      { feature?.description && (
-        <>
-          <h3>Description</h3>
-          <p ref={descRef}>{feature?.description}</p>
-        </>
-      ) }
-      <h3>Estimated Age</h3>
-      <p>{startCase(feature?.controlled_span)} ({humanizeAge(feature?.min_age)} - {humanizeAge(feature?.max_age)})</p>
-      <h4>Source</h4>
-      <small
-        dangerouslySetInnerHTML={{
-          __html: feature?.citation
-            ? Autolinker.link(feature.citation)
-            : feature?.source || ""
-        }}
-      />
-    </>
-  );
-}
 
 function WaterBody( { feature, descRef }: {
   feature?: UnderfootFeature,

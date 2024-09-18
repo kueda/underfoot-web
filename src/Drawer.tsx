@@ -10,22 +10,26 @@ import BackpackIcon from '@mui/icons-material/Backpack';
 import LandscapeIcon from '@mui/icons-material/Landscape';
 import WaterIcon from '@mui/icons-material/Water';
 
+import {
+  ROCKS,
+  WATER,
+  useShowPacksModal,
+  useMapType,
+  useSetMapType
+} from './useAppStore';
 
 interface DrawerProps {
   drawerOpen: boolean;
-  mapType: 'rocks' | 'water';
   setDrawerOpen: (newVal: boolean) => void;
-  setMapType: (newMapType: 'rocks' | 'water') => void;
-  showPacksModal: ( ) => void;
 }
 
 export default function UnderfootDrawer({
   drawerOpen,
-  mapType,
   setDrawerOpen,
-  setMapType,
-  showPacksModal
 }: DrawerProps) {
+  const showPacksModal = useShowPacksModal();
+  const mapType = useMapType();
+  const setMapType = useSetMapType();
 	return (
     <>
       <Drawer
@@ -35,7 +39,7 @@ export default function UnderfootDrawer({
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setDrawerOpen(false)}>
           <List>
             <ListItem disablePadding>
-              <ListItemButton selected={mapType === 'rocks'} onClick={() => setMapType('rocks')}>
+              <ListItemButton selected={mapType === ROCKS} onClick={() => setMapType(ROCKS)}>
                 <ListItemIcon>
                   <LandscapeIcon />
                 </ListItemIcon>
@@ -43,7 +47,7 @@ export default function UnderfootDrawer({
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton selected={mapType === 'water'} onClick={() => setMapType('water')}>
+              <ListItemButton selected={mapType === WATER} onClick={() => setMapType(WATER)}>
                 <ListItemIcon>
                   <WaterIcon />
                 </ListItemIcon>

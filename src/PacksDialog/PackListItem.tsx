@@ -11,7 +11,8 @@ import Radio from '@mui/material/Radio';
 import StopIcon from '@mui/icons-material/Stop';
 import { useState } from 'react';
 
-import { Pack, PackStore } from './PackStore';
+import { Pack } from '../packs/Pack';
+import { PackStore } from '../packs/types';
 
 interface Props {
   currentPackId: string | null,

@@ -3,7 +3,8 @@ import DialogContentText from '@mui/material/DialogContentText';
 import List from '@mui/material/List';
 import TabPanel from '@mui/lab/TabPanel';
 
-import { Pack, PackStore } from './PackStore';
+import { PackStore } from '../packs/types';
+import { Pack } from '../packs/Pack';
 import PackListItem from './PackListItem';
 
 interface PackTabProps {

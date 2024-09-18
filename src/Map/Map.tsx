@@ -6,12 +6,15 @@ import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
-import Papa from 'papaparse';
 
-import MapBottomSheet from './MapBottomSheet';
+import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
 import CurrentLocationButton from './CurrentLocationButton';
-import { UnderfootFeature, usePackStore, UnzippedPackData } from './PackStore';
-import { NO_STYLE, ROCK_STYLE, WATER_STYLE } from './mapStyles';
+import { usePackStore } from '../packs/usePackStore';
+import { UnderfootFeature } from '../packs/types';
+import { Citations, UnderfootFeatures } from './types';
+import { NO_STYLE } from './mapStyles';
+import { useCurrentPackId, useMapType, useShowPacksModal } from '../useAppStore';
+import { loadMapFromPackData } from './util';
 
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
@@ -30,96 +33,12 @@ maplibregl.addProtocol('pmtiles', (request) => {
   });
 });
 
-interface Props {
-  currentPackId: string | null;
-  mapType: 'rocks' | 'water';
-  showPacksModal: ( ) => void;
-}
-
-interface UnderfootFeatures {
-  [id: number]: UnderfootFeature
-}
-
-interface Citation {
-  source: string;
-  citation: string;
-}
-
-interface Citations {
-  [source: string]: string
-}
-
-function loadMapFromPackData(
-  packData: UnzippedPackData,
-  protocol: pmtiles.Protocol,
-  map: maplibregl.Map,
-  mapType: string,
-  setFeatures: React.Dispatch<React.SetStateAction<UnderfootFeatures>>,
-  setCitations: React.Dispatch<React.SetStateAction<Citations>>,
-) {
-  let pmtilesBlob: Blob | undefined;
-  let featuresBlob: Blob | undefined;
-  let citationsBlob: Blob | undefined;
-  let style: maplibregl.StyleSpecification;
-  if (mapType === 'rocks') {
-    pmtilesBlob = packData.rocks_pmtiles;
-    featuresBlob = packData.rocks_units_csv;
-    citationsBlob = packData.rocks_citations_csv;
-    style = ROCK_STYLE;
-  } else {
-    pmtilesBlob = packData.water_pmtiles;
-    citationsBlob = packData.water_citations_csv;
-    style = WATER_STYLE;
-  }
-  if (!pmtilesBlob) throw new Error(`Pack did not have ${mapType} data`);
-  if (!citationsBlob) throw new Error(`Pack did not have ${mapType} citations`);
-
-  const pmtilesData = new pmtiles.PMTiles(
-    new pmtiles.FileSource(new File([pmtilesBlob], mapType))
-  );
-  protocol.add(pmtilesData);
-  map.setStyle(style);
-  if (featuresBlob) {
-    Papa.parse(new File([featuresBlob], `${mapType}_metadata`), {
-      header: true,
-      dynamicTyping: true,
-      complete: results => {
-        const emptyFeatures: UnderfootFeatures = {};
-        const newFeatures = results.data.reduce((memo, curr) => {
-          const feature = curr as UnderfootFeature;
-          const featuresMemo: UnderfootFeatures = memo as UnderfootFeatures;
-          featuresMemo[feature.id] = feature;
-          return featuresMemo;
-        }, emptyFeatures);
-        setFeatures(newFeatures as UnderfootFeatures);
-      }
-    });
-  }
-  if (citationsBlob) {
-    Papa.parse(new File([citationsBlob], `${mapType}_citations`), {
-      header: true,
-      dynamicTyping: true,
-      complete: results => {
-        const emptyCitations: Citations = {};
-        const newCitations = results.data.reduce((memo, curr) => {
-          const citation = curr as Citation;
-          const citationsMemo: Citations = memo as Citations;
-          citationsMemo[citation.source] = citation.citation;
-          return citationsMemo;
-        }, emptyCitations) as Citations;
-        setCitations((existing: Citations) => ({...existing, ...newCitations}));
-      }
-    });
-  }
-}
-
-export default function UnderfootMap({
-  currentPackId,
-  showPacksModal,
-  mapType = 'rocks'
-}: Props) {
+export default function UnderfootMap() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<Map>();
+  const mapType = useMapType();
+  const currentPackId = useCurrentPackId();
+  const showPacksModal = useShowPacksModal( );
   const packStore = usePackStore( );
   const [loadedPackId, setLoadedPackId] = useState<string | null>(null);
   const [loadedMapType, setLoadedMapType] = useState<string | null>(null);
@@ -130,9 +49,7 @@ export default function UnderfootMap({
   const [underfootFeatures, setUnderfootFeatures] = useState<UnderfootFeatures>({});
   const [citations, setCitations] = useState<Citations>({});
 
-  // props
   const sourceLayer = 'rock_units';
-  // /props
 
   useEffect( ( ) => {
     if ( map.current ) return;

@@ -29,6 +29,7 @@ const customPalette = {
   }
 };
 
+// TODO pull this theme out somewhere more general
 const customTheme = createTheme({
   palette: {
     ...customPalette,
