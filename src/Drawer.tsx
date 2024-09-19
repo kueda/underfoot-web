@@ -1,21 +1,20 @@
-import Drawer from '@mui/material/Drawer';
+import BackpackIcon from '@mui/icons-material/Backpack';
 import Box from '@mui/material/Box';
-import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import LandscapeIcon from '@mui/icons-material/Landscape';
+import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import BackpackIcon from '@mui/icons-material/Backpack';
-import LandscapeIcon from '@mui/icons-material/Landscape';
 import WaterIcon from '@mui/icons-material/Water';
-
 import {
   ROCKS,
   WATER,
-  useShowPacksModal,
   useMapType,
-  useSetMapType
+  useSetMapType,
+  useShowPacksModal,
 } from './useAppStore';
 
 interface DrawerProps {
@@ -30,7 +29,7 @@ export default function UnderfootDrawer({
   const showPacksModal = useShowPacksModal();
   const mapType = useMapType();
   const setMapType = useSetMapType();
-	return (
+  return (
     <>
       <Drawer
         open={drawerOpen}
@@ -69,5 +68,5 @@ export default function UnderfootDrawer({
         </Box>
       </Drawer>
     </>
-	);
+  );
 }

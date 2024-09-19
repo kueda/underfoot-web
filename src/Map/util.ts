@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import * as pmtiles from "pmtiles";
+import * as pmtiles from 'pmtiles';
 
 import { UnderfootFeature, UnzippedPackData } from '../packs/types';
 import { Citation, Citations, UnderfootFeatures } from './types';
@@ -22,7 +22,8 @@ export function loadMapFromPackData(
     featuresBlob = packData.rocks_units_csv;
     citationsBlob = packData.rocks_citations_csv;
     style = ROCK_STYLE;
-  } else {
+  }
+  else {
     pmtilesBlob = packData.water_pmtiles;
     citationsBlob = packData.water_citations_csv;
     style = WATER_STYLE;
@@ -31,7 +32,7 @@ export function loadMapFromPackData(
   if (!citationsBlob) throw new Error(`Pack did not have ${mapType} citations`);
 
   const pmtilesData = new pmtiles.PMTiles(
-    new pmtiles.FileSource(new File([pmtilesBlob], mapType))
+    new pmtiles.FileSource(new File([pmtilesBlob], mapType)),
   );
   protocol.add(pmtilesData);
   map.setStyle(style);
@@ -48,7 +49,7 @@ export function loadMapFromPackData(
           return featuresMemo;
         }, emptyFeatures);
         setFeatures(newFeatures as UnderfootFeatures);
-      }
+      },
     });
   }
   if (citationsBlob) {
@@ -63,8 +64,8 @@ export function loadMapFromPackData(
           citationsMemo[citation.source] = citation.citation;
           return citationsMemo;
         }, emptyCitations) as Citations;
-        setCitations((existing: Citations) => ({...existing, ...newCitations}));
-      }
+        setCitations((existing: Citations) => ({ ...existing, ...newCitations }));
+      },
     });
   }
 }

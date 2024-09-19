@@ -31,6 +31,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^2.8.0",
     "@types/lodash": "^4.17.7",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.2.66",
@@ -40,6 +41,7 @@
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.30.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "typescript": "^5.2.2",

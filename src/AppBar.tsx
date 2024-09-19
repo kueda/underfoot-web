@@ -7,7 +7,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 
-import Drawer from './Drawer'
+import Drawer from './Drawer';
 
 export default function UnderfootAppBar() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);

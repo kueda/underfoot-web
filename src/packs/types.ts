@@ -14,15 +14,15 @@ export interface PackMetadata {
 }
 
 export interface RemoteManifest {
-  packs: PackMetadata[],
-  updated_at: string
+  packs: PackMetadata[];
+  updated_at: string;
 }
 
 export interface PackBoundingBox {
-  bottom: number,
-  left: number,
-  right: number,
-  top: number
+  bottom: number;
+  left: number;
+  right: number;
+  top: number;
 }
 
 export interface UnderfootFeature {
@@ -57,10 +57,10 @@ export type UnzippedPackData = {
   water_waterways_network_csv?: Blob;
   water_pmtiles?: Blob;
   ways_pmtiles?: Blob;
-}
+};
 
 export interface DownloadOptions {
-  onProgress?: (value: { loadedBytes: number, totalBytes: number }) => void;
+  onProgress?: (value: { loadedBytes: number; totalBytes: number }) => void;
   signal?: AbortSignal;
 }
 
@@ -68,9 +68,9 @@ export interface PackStore {
   currentPackId: string | null;
   download: (packId: string, options?: DownloadOptions) => Promise<void>;
   get: (packId: string) => Promise<Pack | undefined>;
-  getCurrentPackId: ( ) => Promise<string | null>;
-  list: ( ) => Promise<Pack[]>;
-  listLocal: ( ) => Promise<Pack[]>;
+  getCurrentPackId: () => Promise<string | null>;
+  list: () => Promise<Pack[]>;
+  listLocal: () => Promise<Pack[]>;
   manifest: Manifest | undefined;
   remove: (packId: string) => Promise<void>;
   setCurrent: (packId: string) => void;

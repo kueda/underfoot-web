@@ -5,20 +5,21 @@ import AppBar from './AppBar';
 import Map from './Map/Map';
 import PacksDialog from './PacksDialog/PacksDialog';
 
-import './App.css'
-import {usePackStore} from './packs/usePackStore';
+import './App.css';
+import { usePackStore } from './packs/usePackStore';
 import { useSetCurrentPackId } from './useAppStore';
 
 function App() {
   const setCurrentPackId = useSetCurrentPackId();
   const packStore = usePackStore();
 
-  React.useEffect(( ) => {
+  React.useEffect(() => {
     async function getCurrentPackId() {
       try {
         const packId = await packStore.getCurrentPackId();
         if (packId) setCurrentPackId(packId);
-      } catch (err) {
+      }
+      catch (err) {
         console.error('Failed to get current pack ID', err);
       }
     }
@@ -32,7 +33,7 @@ function App() {
       <Map />
       <PacksDialog />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

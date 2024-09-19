@@ -1,10 +1,10 @@
 import { startCase } from 'lodash';
 
-import { RockUnit } from "../../packs/types";
+import { RockUnit } from '../../packs/types';
 import { humanizeAge } from './util';
 
 // Header for rock unit in MapBottomSheet
-export default function RocksHeader( { feature }: { feature?: RockUnit } ) {
+export default function RocksHeader({ feature }: { feature?: RockUnit }) {
   return (
     <>
       <h3>

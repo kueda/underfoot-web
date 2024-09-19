@@ -1,32 +1,33 @@
-import {useEffect, useRef, useState} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl, { Map, MapGeoJSONFeature } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import * as pmtiles from "pmtiles";
+import * as pmtiles from 'pmtiles';
 import Modal from '@mui/material/Modal';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
-import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
-import CurrentLocationButton from './CurrentLocationButton';
 import { usePackStore } from '../packs/usePackStore';
 import { UnderfootFeature } from '../packs/types';
+import { useCurrentPackId, useMapType, useShowPacksModal } from '../useAppStore';
+import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
+import CurrentLocationButton from './CurrentLocationButton';
 import { Citations, UnderfootFeatures } from './types';
 import { NO_STYLE } from './mapStyles';
-import { useCurrentPackId, useMapType, useShowPacksModal } from '../useAppStore';
 import { loadMapFromPackData } from './util';
 
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
-maplibregl.addProtocol('pmtiles', (request) => {
+maplibregl.addProtocol('pmtiles', request => {
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (err: Error | undefined, data: any) => {
       if (err) {
         reject(err);
-      } else {
+      }
+      else {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        resolve({data});
+        resolve({ data });
       }
     };
     protocol.tile(request, callback);
@@ -38,8 +39,8 @@ export default function UnderfootMap() {
   const map = useRef<Map>();
   const mapType = useMapType();
   const currentPackId = useCurrentPackId();
-  const showPacksModal = useShowPacksModal( );
-  const packStore = usePackStore( );
+  const showPacksModal = useShowPacksModal();
+  const packStore = usePackStore();
   const [loadedPackId, setLoadedPackId] = useState<string | null>(null);
   const [loadedMapType, setLoadedMapType] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -51,21 +52,21 @@ export default function UnderfootMap() {
 
   const sourceLayer = 'rock_units';
 
-  useEffect( ( ) => {
-    if ( map.current ) return;
-    if ( !mapContainer.current ) return;
+  useEffect(() => {
+    if (map.current) return;
+    if (!mapContainer.current) return;
 
-    map.current = new maplibregl.Map( {
+    map.current = new maplibregl.Map({
       container: mapContainer.current,
       center: [-122, 38],
-      zoom: 2
-    } );
+      zoom: 2,
+    });
     map.current.on('load', () => {
       setMapLoaded(true);
     });
     map.current.on('move', () => {
       if (!map.current) return;
-      const {lat, lng} = map.current.getCenter();
+      const { lat, lng } = map.current.getCenter();
       const features = map.current.queryRenderedFeatures(map.current.project([lng, lat]));
       // new maplibregl.Marker()
       //   .setLngLat([lng,lat])
@@ -73,14 +74,15 @@ export default function UnderfootMap() {
       if (features.length > 0) {
         const feature = features.find(f => f.sourceLayer === sourceLayer);
         setMapFeature(feature);
-      } else {
+      }
+      else {
         setMapFeature(undefined);
       }
     });
     map.current.on('click', clickEvent => {
       map.current?.panTo(clickEvent.lngLat);
-    })
-  }, [map, mapContainer] );
+    });
+  }, [map, mapContainer]);
 
   useEffect(() => {
     if (underfootFeatures && mapFeature?.properties.id) {
@@ -89,12 +91,13 @@ export default function UnderfootMap() {
         feature.citation = citations[feature.source];
       }
       setUnderfootFeature(feature);
-    } else {
+    }
+    else {
       setUnderfootFeature(undefined);
     }
   }, [citations, mapFeature, underfootFeatures]);
 
-  useEffect( ( ) => {
+  useEffect(() => {
     async function changePack() {
       if (currentPackId === loadedPackId && mapType === loadedMapType) return;
       if (!map.current) return;
@@ -115,8 +118,8 @@ export default function UnderfootMap() {
         new pmtiles.FileSource(
           // The filename is important b/c it's a key that we use to refer to
           // this "protocol" in the sources
-          new File( [packData.ways_pmtiles], "ways" )
-        )
+          new File([packData.ways_pmtiles], 'ways'),
+        ),
       );
       protocol.add(waysPmtiles);
 
@@ -126,19 +129,19 @@ export default function UnderfootMap() {
         map.current,
         mapType,
         setUnderfootFeatures,
-        setCitations
+        setCitations,
       );
 
-      const waysHeader = await waysPmtiles.getHeader( );
+      const waysHeader = await waysPmtiles.getHeader();
       map.current.setZoom(waysHeader.maxZoom - 2);
-      map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat])
+      map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat]);
       setLoadedPackId(currentPackId);
       setLoadedMapType(mapType);
       setPackLoading(false);
     }
     if (
       packStore
-      && ( currentPackId !== loadedPackId || mapType !== loadedMapType )
+      && (currentPackId !== loadedPackId || mapType !== loadedMapType)
       && map.current
     ) {
       changePack().catch(e => {
@@ -154,16 +157,16 @@ export default function UnderfootMap() {
     mapLoaded,
     mapType,
     packLoading,
-    packStore
-  ])
+    packStore,
+  ]);
 
   return (
-    <div className='map-wrapper'>
-      <div className={`map ${loadedPackId ? 'loaded': ''}`} ref={mapContainer} />
+    <div className="map-wrapper">
+      <div className={`map ${loadedPackId ? 'loaded' : ''}`} ref={mapContainer} />
       <CurrentLocationButton map={map.current} />
       { loadedPackId && (
         <>
-          <AddIcon fontSize='large' className="add-icon" style={{pointerEvents: 'none'}} />
+          <AddIcon fontSize="large" className="add-icon" style={{ pointerEvents: 'none' }} />
           <MapBottomSheet feature={underfootFeature} mapType={mapType} />
         </>
       ) }
@@ -182,5 +185,5 @@ export default function UnderfootMap() {
         </div>
       </Modal>
     </div>
-  )
+  );
 }

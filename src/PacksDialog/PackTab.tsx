@@ -31,10 +31,10 @@ const PackTab = ({
   packStore,
   value,
 }: PackTabProps) => (
-  <TabPanel value={value} sx={{padding: 0}}>
+  <TabPanel value={value} sx={{ padding: 0 }}>
     {loading && <CircularProgress />}
     {description && (
-      <DialogContentText sx={{textAlign: 'center', p: 4}}>
+      <DialogContentText sx={{ textAlign: 'center', p: 4 }}>
         {description}
       </DialogContentText>
     )}

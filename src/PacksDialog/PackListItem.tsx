@@ -15,24 +15,24 @@ import { Pack } from '../packs/Pack';
 import { PackStore } from '../packs/types';
 
 interface Props {
-  currentPackId: string | null,
-  onChoose?: (packId: string | null) => void,
-  onDelete?: ( ) => void,
-  onDownload?: ( ) => void,
-  pack: Pack,
-  packStore: PackStore
+  currentPackId: string | null;
+  onChoose?: (packId: string | null) => void;
+  onDelete?: () => void;
+  onDownload?: () => void;
+  pack: Pack;
+  packStore: PackStore;
 }
 
-const PackListItem = ( {
+const PackListItem = ({
   currentPackId,
   onChoose,
   onDelete,
   onDownload,
   pack,
-  packStore
-}: Props ) => {
+  packStore,
+}: Props) => {
   const isDownloaded = !!pack.zippedData;
-  const [downloadProgress, setDownloadProgress] = useState<null | {loadedBytes: number, totalBytes: number}>(null);
+  const [downloadProgress, setDownloadProgress] = useState<null | { loadedBytes: number; totalBytes: number }>(null);
   const [abortController, setAbortController] = useState(new AbortController());
   let secondaryAction;
   if (isDownloaded) {
@@ -40,17 +40,18 @@ const PackListItem = ( {
       <IconButton
         edge="end"
         aria-label="delete"
-        onClick={( ) => {
-          packStore.remove( pack.id )
-            .then(( ) => ( typeof ( onDelete ) === "function" ? onDelete() : null))
-            .then(() => ( typeof ( onChoose ) === "function" ? onChoose(null) : null))
-            .catch( e => console.error('Problem deleting pack: ', e));
+        onClick={() => {
+          packStore.remove(pack.id)
+            .then(() => (typeof (onDelete) === 'function' ? onDelete() : null))
+            .then(() => (typeof (onChoose) === 'function' ? onChoose(null) : null))
+            .catch(e => console.error('Problem deleting pack: ', e));
         }}
       >
         <DeleteIcon />
       </IconButton>
     );
-  } else if (downloadProgress) {
+  }
+  else if (downloadProgress) {
     const progress = Math.round(downloadProgress.loadedBytes / downloadProgress.totalBytes * 100);
     secondaryAction = (
       <Box sx={{ position: 'relative', display: 'inline-flex', mr: -1.5 }}>
@@ -58,7 +59,7 @@ const PackListItem = ( {
         <IconButton
           edge="end"
           aria-label="stop"
-          onClick={( ) => abortController.abort()}
+          onClick={() => abortController.abort()}
           sx={{
             position: 'absolute',
             display: 'flex',
@@ -70,18 +71,19 @@ const PackListItem = ( {
         </IconButton>
       </Box>
     );
-  } else {
+  }
+  else {
     secondaryAction = (
       <IconButton
         edge="end"
         color="primary"
         aria-label="download"
-        onClick={( ) => {
+        onClick={() => {
           const ac = new AbortController();
           setAbortController(ac);
-          packStore.download(pack.id, {onProgress: setDownloadProgress, signal: ac.signal})
-            .then(() => ( typeof ( onDownload ) === "function" ? onDownload() : null))
-            .then(() => ( typeof ( onChoose ) === "function" ? onChoose(pack.id) : null))
+          packStore.download(pack.id, { onProgress: setDownloadProgress, signal: ac.signal })
+            .then(() => (typeof (onDownload) === 'function' ? onDownload() : null))
+            .then(() => (typeof (onChoose) === 'function' ? onChoose(pack.id) : null))
             .catch((e: Error) => {
               if (e?.message?.match(/aborted/)) {
                 setDownloadProgress(null);
@@ -104,12 +106,12 @@ const PackListItem = ( {
       <ListItemButton
         disabled={!isDownloaded}
         sx={{ px: 0 }}
-        onClick={( ) => {
+        onClick={() => {
           packStore.setCurrent(pack.id);
-          if (typeof(onChoose) === "function") onChoose(pack.id);
+          if (typeof (onChoose) === 'function') onChoose(pack.id);
         }}
       >
-        <ListItemIcon sx={{display: 'flex', justifyContent: 'center'}}>
+        <ListItemIcon sx={{ display: 'flex', justifyContent: 'center' }}>
           <Radio
             edge="start"
             checked={currentPackId === pack.id}
@@ -127,7 +129,7 @@ const PackListItem = ( {
               // pack instanceof StoredPack
               //   ? ` (ways: ${prettyBytes( downloadedPacks[pack.id]?.['ways']?.size || 0 )}, rocks: ${prettyBytes( downloadedPacks[pack.id]?.rocks?.size || 0 )}, water: ${prettyBytes( downloadedPacks[pack.id]?.water?.size || 0 )}, context: ${prettyBytes( downloadedPacks[pack.id]?.context?.size || 0 )}, , contours: ${prettyBytes( downloadedPacks[pack.id]?.contours?.size || 0 )})`
               //   : ""
-            ].join( " " )
+            ].join(' ')
           }
           secondaryTypographyProps={{
             noWrap: true,

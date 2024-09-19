@@ -1,7 +1,7 @@
 import { UnderfootFeature } from '../packs/types';
 
 export interface UnderfootFeatures {
-  [id: number]: UnderfootFeature
+  [id: number]: UnderfootFeature;
 }
 
 export interface Citation {
@@ -10,5 +10,5 @@ export interface Citation {
 }
 
 export interface Citations {
-  [source: string]: string
+  [source: string]: string;
 }

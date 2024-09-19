@@ -4,22 +4,22 @@ import IconButton from '@mui/material/IconButton';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
-import { RockUnit, UnderfootFeature } from "../../packs/types";
+import { RockUnit, UnderfootFeature } from '../../packs/types';
 import RocksHeader from './RocksHeader';
 import RocksBody from './RocksBody';
 import WaterHeader from './WaterHeader';
 
 interface Props {
   feature?: UnderfootFeature | RockUnit;
-  mapType: 'rocks' | 'water'
+  mapType: 'rocks' | 'water';
 }
 
 const CLOSED_HEIGHT = '90px';
 
-function WaterBody( { feature, descRef }: {
-  feature?: UnderfootFeature,
-  descRef: React.RefObject<HTMLParagraphElement>
-} ) {
+function WaterBody({ feature, descRef }: {
+  feature?: UnderfootFeature;
+  descRef: React.RefObject<HTMLParagraphElement>;
+}) {
   return (
     <>
       <h3>Description</h3>
@@ -51,18 +51,18 @@ function MapBottomSheet({ feature, mapType }: Props) {
       <Vaul.Portal>
         <Vaul.Content
           style={{
-            position: "fixed",
-            width: "100%",
-            height: "100%",
+            position: 'fixed',
+            width: '100%',
+            height: '100%',
             bottom: 0,
             left: 0,
             right: 0,
             // the rest is gravy
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
-            zIndex: 1101
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            zIndex: 1101,
           }}
         >
-          <div className={`MapBottomSheet ${snap === 1 ? 'open': ''} ${scrollable ? 'scrollable' : ''}`}>
+          <div className={`MapBottomSheet ${snap === 1 ? 'open' : ''} ${scrollable ? 'scrollable' : ''}`}>
             <div
               className="MapBottomSheetHeader"
               style={{ height: CLOSED_HEIGHT }}
@@ -70,26 +70,23 @@ function MapBottomSheet({ feature, mapType }: Props) {
               <div className="MapBottomSheetHeaderContent">
                 { mapType === 'rocks'
                   ? <RocksHeader feature={feature as RockUnit} />
-                  : <WaterHeader feature={feature} />
-                }
+                  : <WaterHeader feature={feature} />}
               </div>
               <div className="MapBottomSheetHeaderActions">
                 <IconButton
                   aria-label="show full feature properties"
-                  onClick={( ) => setSnap( snap === 1 ? CLOSED_HEIGHT : 1 )}
+                  onClick={() => setSnap(snap === 1 ? CLOSED_HEIGHT : 1)}
                 >
                   { snap === 1
                     ? <CloseFullscreenIcon />
-                    : <OpenInFullIcon />
-                  }
+                    : <OpenInFullIcon />}
                 </IconButton>
               </div>
             </div>
             <div className="MapBottomSheetBody" ref={bodyRef}>
               { mapType === 'rocks'
                 ? <RocksBody feature={feature as RockUnit} descRef={descRef} />
-                : <WaterBody feature={feature} descRef={descRef} />
-              }
+                : <WaterBody feature={feature} descRef={descRef} />}
             </div>
           </div>
         </Vaul.Content>

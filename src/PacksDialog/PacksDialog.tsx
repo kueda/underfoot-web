@@ -3,7 +3,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 
 import { useHidePacksModal, usePacksModalShown } from '../useAppStore';
-import Packs from './Packs'
+import Packs from './Packs';
 
 export default function PacksDialog() {
   const packsModalShown = usePacksModalShown();
@@ -20,5 +20,5 @@ export default function PacksDialog() {
     >
       <Packs />
     </Dialog>
-  )
+  );
 }

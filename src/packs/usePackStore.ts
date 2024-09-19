@@ -1,39 +1,39 @@
 import { useCallback, useEffect, useState } from 'react';
 import localforage from 'localforage';
+import { Pack } from './Pack';
 
 import { Manifest } from './Manifest';
 import { DownloadOptions, PackStore, RemoteManifest } from './types';
-import { Pack } from "./Pack";
 
 const packStore = localforage.createInstance({ name: 'packStore' });
 const prefStore = localforage.createInstance({ name: 'prefStore' });
 
-export function usePackStore( ): PackStore {
-  const [manifest, setManifest] = useState<Manifest | undefined>( undefined );
-  const [currentPackId, setCurrentPackId] = useState<string | null>( null );
+export function usePackStore(): PackStore {
+  const [manifest, setManifest] = useState<Manifest | undefined>(undefined);
+  const [currentPackId, setCurrentPackId] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect( () => {
-    prefStore.getItem<string>("currentPackId")
+  useEffect(() => {
+    prefStore.getItem<string>('currentPackId')
       .then(setCurrentPackId)
-      .catch(e => console.error("Failed to get currentPackId: ", e))
+      .catch(e => console.error('Failed to get currentPackId: ', e));
   }, []);
 
-  useEffect( ( ) => {
-    fetch( "https://static.underfoot.rocks/manifest.json" )
-      .then( r => r.json( ) )
-      .then( (json: RemoteManifest) => setManifest(new Manifest(json)) )
+  useEffect(() => {
+    fetch('https://static.underfoot.rocks/manifest.json')
+      .then(r => r.json())
+      .then((json: RemoteManifest) => setManifest(new Manifest(json)))
       .catch((err: Error) => {
-        console.error( "[ERROR] oh no!: ", err );
+        console.error('[ERROR] oh no!: ', err);
         setError(err);
-      })
-  }, [] );
+      });
+  }, []);
 
-  const getCurrentPackId = useCallback(async () => prefStore.getItem<string>("currentPackId"), [] );
+  const getCurrentPackId = useCallback(async () => prefStore.getItem<string>('currentPackId'), []);
 
   const get = useCallback(async (packId: string): Promise<Pack | undefined> => {
     const storedPack = await packStore.getItem<Pack>(packId);
-    if ( storedPack ) {
+    if (storedPack) {
       // Instantiate a full Pack object so we have all the instance methods
       return Pack.fromPack(storedPack);
     }
@@ -44,8 +44,9 @@ export function usePackStore( ): PackStore {
     setCurrentPackId(packId);
     if (packId) {
       prefStore.setItem('currentPackId', packId)
-        .catch( e => console.error( 'Failed to get currentPackId: ', e));
-    } else {
+        .catch(e => console.error('Failed to get currentPackId: ', e));
+    }
+    else {
       prefStore.removeItem('currentPackId')
         .catch(e => console.error('Failed to remove currentPackId: ', e));
     }
@@ -57,9 +58,9 @@ export function usePackStore( ): PackStore {
     return localPacks.flat() as Pack[];
   }, [get]);
 
-  const list = useCallback( async () => {
+  const list = useCallback(async () => {
     const manifestPacks = manifest?.packs;
-    let packs: (Pack | undefined)[] = []
+    let packs: (Pack | undefined)[] = [];
     if (manifestPacks) {
       packs = await Promise.all(manifestPacks.filter(pack => pack.pmtilesPath).map(pack => get(pack.id)));
     }
@@ -72,9 +73,9 @@ export function usePackStore( ): PackStore {
   const download = useCallback(async (packId: string, options?: DownloadOptions) => {
     const opts = options || {};
     const pack = await get(packId);
-    if (!pack) throw new Error("Can't unknown pack");
+    if (!pack) throw new Error('Can\'t unknown pack');
     const url = `https://static.underfoot.rocks/${pack.pmtilesPath}`;
-    const resp = await fetch(url, {signal: opts.signal});
+    const resp = await fetch(url, { signal: opts.signal });
 
     // Start chunked download with progress, based on https://javascript.info/fetch-progress
     const reader = resp?.body?.getReader();
@@ -85,19 +86,19 @@ export function usePackStore( ): PackStore {
     const chunks = [];
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const {done, value} = await reader.read();
+      const { done, value } = await reader.read();
       if (done) {
         break;
       }
       chunks.push(value);
       receivedLength += value.length;
       if (totalBytes && typeof (opts.onProgress) === 'function') {
-        opts.onProgress({loadedBytes: receivedLength, totalBytes});
+        opts.onProgress({ loadedBytes: receivedLength, totalBytes });
       }
     }
     const chunksAll = new Uint8Array(receivedLength);
     let position = 0;
-    for(const chunk of chunks) {
+    for (const chunk of chunks) {
       chunksAll.set(chunk, position);
       position += chunk.length;
     }
@@ -118,12 +119,12 @@ export function usePackStore( ): PackStore {
     if (!currentPackId) {
       setCurrent(packId);
     }
-  }, [currentPackId, get, setCurrent] );
+  }, [currentPackId, get, setCurrent]);
 
-  const remove = useCallback( async (packId: string) => {
+  const remove = useCallback(async (packId: string) => {
     await packStore.removeItem(packId);
     if (currentPackId === packId) setCurrent(null);
-  }, [currentPackId, setCurrent] );
+  }, [currentPackId, setCurrent]);
 
   return {
     currentPackId,

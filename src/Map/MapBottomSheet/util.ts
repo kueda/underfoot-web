@@ -13,23 +13,24 @@
  */
 export function humanizeAge(age?: string | number) {
   const unknown = '?';
-  if (age === 0) return "0"
+  if (age === 0) return '0';
   if (!age) return unknown;
   let ageNum: number;
   if (typeof (age) === 'string') {
     ageNum = parseFloat(age);
     if (ageNum === 0) return unknown;
-  } else {
+  }
+  else {
     ageNum = age;
   }
   if (ageNum >= 1_000_000_000) {
-    return `${(ageNum / 1_000_000_000.0).toLocaleString(undefined, {maximumFractionDigits: 1})} Ga`;
+    return `${(ageNum / 1_000_000_000.0).toLocaleString(undefined, { maximumFractionDigits: 1 })} Ga`;
   }
   if (ageNum >= 1_000_000) {
-    return `${(ageNum / 1_000_000.0).toLocaleString(undefined, {maximumFractionDigits: 1})} Ma`;
+    return `${(ageNum / 1_000_000.0).toLocaleString(undefined, { maximumFractionDigits: 1 })} Ma`;
   }
   if (ageNum >= 100_000) {
-    return `${(ageNum / 1000.0).toLocaleString(undefined, {maximumFractionDigits: 1})} ka`;
+    return `${(ageNum / 1000.0).toLocaleString(undefined, { maximumFractionDigits: 1 })} ka`;
   }
   return `${ageNum.toLocaleString()} years`;
 }

@@ -1,22 +1,21 @@
+import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
-import Toolbar from '@mui/material/Toolbar';
-import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
+import Toolbar from '@mui/material/Toolbar';
 import { useEffect, useState } from 'react';
-
-import { usePackStore } from '../packs/usePackStore';
 import { Pack } from '../packs/Pack';
-import PackTab from './PackTab';
 import { useCurrentPackId, useHidePacksModal, useSetCurrentPackId } from '../useAppStore';
+import { usePackStore } from '../packs/usePackStore';
+import PackTab from './PackTab';
 
 export default function Packs() {
-  const packStore = usePackStore( );
+  const packStore = usePackStore();
   const currentPackId = useCurrentPackId();
   const onChoose = useSetCurrentPackId();
   const onClose = useHidePacksModal();
@@ -33,19 +32,19 @@ export default function Packs() {
 
   useEffect(() => {
     async function getPacks() {
-      const listedPacks = await listPacks( );
+      const listedPacks = await listPacks();
       setPacks(listedPacks);
     }
     if (manifest && !packsLoaded) {
       setLoading(true);
       getPacks()
-        .catch(e => console.error("Failed to get packs", e))
+        .catch(e => console.error('Failed to get packs', e))
         .finally(() => setLoading(false));
     }
   }, [
     listPacks,
     manifest,
-    packsLoaded
+    packsLoaded,
   ]);
 
   useEffect(() => {
@@ -54,7 +53,7 @@ export default function Packs() {
       listLocal()
         .then(localPacks => setDownloadedPacks(localPacks))
         .catch(e => console.error('Failed to get local packs', e))
-        .finally(( ) => setLoadingLocal(false));
+        .finally(() => setLoadingLocal(false));
     }
   }, [listLocal, downloadedPacksLoaded]);
 
@@ -79,11 +78,11 @@ export default function Packs() {
         <DialogContentText>
           Download map data for use offline.
         </DialogContentText>
-        
+
         <TabContext value={currentTab}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <TabList
-              onChange={(_event: React.SyntheticEvent, newVal: "all" | "downloaded") => setCurrentTab(newVal)}
+              onChange={(_event: React.SyntheticEvent, newVal: 'all' | 'downloaded') => setCurrentTab(newVal)}
               aria-label="Packs"
             >
               <Tab label="All" value="all" />
@@ -91,7 +90,7 @@ export default function Packs() {
             </TabList>
           </Box>
           <PackTab
-            value='all'
+            value="all"
             packs={packs}
             isOffline={isOffline}
             loading={loading}
@@ -99,8 +98,8 @@ export default function Packs() {
             packStore={packStore}
             description={
               isOffline && !loading
-                ? "Looks like you're offline. You can choose packs you've already downloaded or "
-                  + "try again when you're online."
+                ? 'Looks like you\'re offline. You can choose packs you\'ve already downloaded or '
+                + 'try again when you\'re online.'
                 : null
             }
             onChoose={onChoose}
@@ -114,7 +113,7 @@ export default function Packs() {
             }}
           />
           <PackTab
-            value='downloaded'
+            value="downloaded"
             packs={downloadedPacks}
             isOffline={isOffline}
             loading={loadingLocal}
@@ -122,7 +121,7 @@ export default function Packs() {
             packStore={packStore}
             description={
               !loadingLocal && (downloadedPacks === null || downloadedPacks?.length === 0)
-                ? "No packs downloaded yet."
+                ? 'No packs downloaded yet.'
                 : null
             }
             onChoose={onChoose}

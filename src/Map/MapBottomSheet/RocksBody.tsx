@@ -1,13 +1,13 @@
 import { startCase } from 'lodash';
-import Autolinker from 'autolinker';
+import autolinker from 'autolinker';
 
-import { RockUnit } from "../../packs/types";
+import { RockUnit } from '../../packs/types';
 import { humanizeAge } from './util';
 
-export default function RocksBody( { feature, descRef }: {
-  feature?: RockUnit,
-  descRef: React.RefObject<HTMLParagraphElement>
-} ) {
+export default function RocksBody({ feature, descRef }: {
+  feature?: RockUnit;
+  descRef: React.RefObject<HTMLParagraphElement>;
+}) {
   return (
     <>
       { feature?.description && (
@@ -17,13 +17,23 @@ export default function RocksBody( { feature, descRef }: {
         </>
       ) }
       <h3>Estimated Age</h3>
-      <p>{startCase(feature?.controlled_span)} ({humanizeAge(feature?.min_age)} - {humanizeAge(feature?.max_age)})</p>
+      <p>
+        {startCase(feature?.controlled_span)}
+        {' '}
+        (
+        {humanizeAge(feature?.min_age)}
+        {' '}
+        -
+        {' '}
+        {humanizeAge(feature?.max_age)}
+        )
+      </p>
       <h4>Source</h4>
       <small
         dangerouslySetInnerHTML={{
           __html: feature?.citation
-            ? Autolinker.link(feature.citation)
-            : feature?.source || ""
+            ? autolinker.link(feature.citation)
+            : feature?.source || '',
         }}
       />
     </>
