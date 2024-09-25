@@ -47,6 +47,10 @@ export interface RockUnit extends UnderfootFeature {
   title?: string;
 }
 
+export interface WaterFeature extends UnderfootFeature {
+  layer: string;
+}
+
 export type UnzippedPackData = {
   context_pmtiles?: Blob;
   contours_pmtiles?: Blob;

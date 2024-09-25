@@ -4,29 +4,18 @@ import IconButton from '@mui/material/IconButton';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
-import { RockUnit, UnderfootFeature } from '../../packs/types';
+import { RockUnit, UnderfootFeature, WaterFeature } from '../../packs/types';
 import RocksHeader from './RocksHeader';
 import RocksBody from './RocksBody';
 import WaterHeader from './WaterHeader';
+import WaterBody from './WaterBody';
 
 interface Props {
-  feature?: UnderfootFeature | RockUnit;
+  feature?: UnderfootFeature | RockUnit | WaterFeature;
   mapType: 'rocks' | 'water';
 }
 
 const CLOSED_HEIGHT = '90px';
-
-function WaterBody({ feature, descRef }: {
-  feature?: UnderfootFeature;
-  descRef: React.RefObject<HTMLParagraphElement>;
-}) {
-  return (
-    <>
-      <h3>Description</h3>
-      <p ref={descRef}>{feature?.title}</p>
-    </>
-  );
-}
 
 function MapBottomSheet({ feature, mapType }: Props) {
   const [snap, setSnap] = useState<number | string | null | undefined>(CLOSED_HEIGHT);
@@ -70,7 +59,7 @@ function MapBottomSheet({ feature, mapType }: Props) {
               <div className="MapBottomSheetHeaderContent">
                 { mapType === 'rocks'
                   ? <RocksHeader feature={feature as RockUnit} />
-                  : <WaterHeader feature={feature} />}
+                  : <WaterHeader feature={feature as WaterFeature} />}
               </div>
               <div className="MapBottomSheetHeaderActions">
                 <IconButton
@@ -86,7 +75,7 @@ function MapBottomSheet({ feature, mapType }: Props) {
             <div className="MapBottomSheetBody" ref={bodyRef}>
               { mapType === 'rocks'
                 ? <RocksBody feature={feature as RockUnit} descRef={descRef} />
-                : <WaterBody feature={feature} descRef={descRef} />}
+                : <WaterBody feature={feature as WaterFeature} />}
             </div>
           </div>
         </Vaul.Content>

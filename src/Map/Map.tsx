@@ -8,7 +8,7 @@ import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
 import { usePackStore } from '../packs/usePackStore';
-import { UnderfootFeature } from '../packs/types';
+import { UnderfootFeature, WaterFeature } from '../packs/types';
 import { useCurrentPackId, useMapType, useShowPacksModal } from '../useAppStore';
 import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
 import CurrentLocationButton from './CurrentLocationButton';
@@ -50,20 +50,23 @@ export default function UnderfootMap() {
   const [underfootFeatures, setUnderfootFeatures] = useState<UnderfootFeatures>({});
   const [citations, setCitations] = useState<Citations>({});
 
-  const sourceLayer = 'rock_units';
-
   useEffect(() => {
-    if (map.current) return;
     if (!mapContainer.current) return;
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      center: [-122, 38],
-      zoom: 2,
-    });
-    map.current.on('load', () => {
-      setMapLoaded(true);
-    });
+    if (!map.current) {
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        center: [-122, 38],
+        zoom: 2,
+      });
+      map.current.on('load', () => {
+        setMapLoaded(true);
+      });
+      map.current.on('click', clickEvent => {
+        map.current?.panTo(clickEvent.lngLat);
+      });
+    }
+
     map.current.on('move', () => {
       if (!map.current) return;
       const { lat, lng } = map.current.getCenter();
@@ -72,30 +75,61 @@ export default function UnderfootMap() {
       //   .setLngLat([lng,lat])
       //   .addTo(map.current);
       if (features.length > 0) {
-        const feature = features.find(f => f.sourceLayer === sourceLayer);
+        let feature;
+        if (loadedMapType === 'rocks') {
+          feature = features.find(f => f.sourceLayer === 'rock_units');
+        }
+        else {
+          feature = (
+            features.find(f => f.sourceLayer === 'waterways')
+            || features.find(f => f.sourceLayer === 'waterbodies')
+            || features.find(f => f.sourceLayer === 'watersheds')
+          );
+        }
         setMapFeature(feature);
       }
       else {
         setMapFeature(undefined);
       }
     });
-    map.current.on('click', clickEvent => {
-      map.current?.panTo(clickEvent.lngLat);
-    });
-  }, [map, mapContainer]);
+  }, [loadedMapType, map, mapContainer]);
 
   useEffect(() => {
-    if (underfootFeatures && mapFeature?.properties.id) {
-      const feature = underfootFeatures[parseInt(String(mapFeature.properties.id), 10)];
-      if (citations && feature?.source && !feature.citation) {
-        feature.citation = citations[feature.source];
+    if (!loadedMapType) return;
+    if (!mapFeature) {
+      setUnderfootFeature(undefined);
+      return;
+    }
+    if (loadedMapType === 'rocks') {
+      if (underfootFeatures && mapFeature.properties.id) {
+        const feature = underfootFeatures[parseInt(String(mapFeature.properties.id), 10)];
+        if (citations && feature?.source && !feature.citation) {
+          feature.citation = citations[feature.source];
+        }
+        setUnderfootFeature(feature);
       }
-      setUnderfootFeature(feature);
+      else {
+        setUnderfootFeature(undefined);
+      }
     }
     else {
-      setUnderfootFeature(undefined);
+      const newUnderfootFeature: WaterFeature = {
+        id: Number(mapFeature.properties.source_id),
+        source: String(mapFeature.properties.source),
+        layer: String(mapFeature.sourceLayer),
+      };
+      if (mapFeature.properties.name) newUnderfootFeature.title = mapFeature.properties.name as string;
+      if (citations && newUnderfootFeature.source) {
+        newUnderfootFeature.citation = citations[newUnderfootFeature.source];
+      }
+      setUnderfootFeature(newUnderfootFeature);
     }
-  }, [citations, mapFeature, underfootFeatures]);
+  }, [
+    citations,
+    loadedMapType,
+    mapFeature,
+    underfootFeatures,
+  ]);
 
   useEffect(() => {
     async function changePack() {
