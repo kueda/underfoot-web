@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import maplibregl, { Map, MapGeoJSONFeature } from 'maplibre-gl';
+import maplibregl, { Map, MapGeoJSONFeature, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from 'pmtiles';
 import Modal from '@mui/material/Modal';
@@ -58,6 +58,7 @@ export default function UnderfootMap() {
         container: mapContainer.current,
         center: [-122, 38],
         zoom: 2,
+        attributionControl: false,
       });
       map.current.on('load', () => {
         setMapLoaded(true);
@@ -65,6 +66,11 @@ export default function UnderfootMap() {
       map.current.on('click', clickEvent => {
         map.current?.panTo(clickEvent.lngLat);
       });
+      const scale = new ScaleControl({
+        maxWidth: 80,
+        unit: 'metric',
+      });
+      map.current.addControl(scale, 'bottom-left');
     }
 
     map.current.on('move', () => {

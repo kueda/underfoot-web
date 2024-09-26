@@ -145,3 +145,13 @@ body {
 .scrollable .MapBottomSheetBody {
   overflow-y: auto;
 }
+
+.maplibregl-ctrl-top-left,
+.maplibregl-ctrl-top-right {
+  top: 56px;
+}
+
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-bottom-right {
+  bottom: 91px;
+}
