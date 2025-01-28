@@ -21,10 +21,23 @@ interface PacksModalState {
   hidePacksModal: () => void;
 }
 
+interface LogEntry {
+  body: string;
+  date: Date;
+}
+
+interface LogState {
+  log: LogEntry[];
+  logModalShown: boolean;
+  showLogModal: () => void;
+  hideLogModal: () => void;
+}
+
 export interface AppState {
   currentPack: CurrentPackState;
   map: MapTypeState;
   packsModal: PacksModalState;
+  logging: LogState;
 }
 
 const useAppStore = create<AppState>(set => ({
@@ -57,6 +70,18 @@ const useAppStore = create<AppState>(set => ({
       return { packsModal: state.packsModal };
     }),
   },
+  logging: {
+    log: [],
+    logModalShown: false,
+    showLogModal: () => set(state => {
+      state.logging.logModalShown = true;
+      return { logging: state.logging };
+    }),
+    hideLogModal: () => set(state => {
+      state.logging.logModalShown = false;
+      return { logging: state.logging };
+    }),
+  },
 }));
 
 // Selectors
@@ -71,3 +96,19 @@ export const useSetMapType = () => useAppStore(s => s.map.setMapType);
 export const usePacksModalShown = () => useAppStore(s => s.packsModal.packsModalShown);
 export const useShowPacksModal = () => useAppStore(s => s.packsModal.showPacksModal);
 export const useHidePacksModal = () => useAppStore(s => s.packsModal.hidePacksModal);
+export const useLogging = () => {
+  const log = useAppStore(s => s.logging.log);
+  const showLogModal = useAppStore(s => s.logging.showLogModal);
+  const hideLogModal = useAppStore(s => s.logging.hideLogModal);
+  const logModalShown = useAppStore(s => s.logging.logModalShown);
+  return {
+    add: (newLog: string) => {
+      console.log(newLog);
+      log.push({ date: new Date(), body: newLog });
+    },
+    showLogModal,
+    hideLogModal,
+    log,
+    logModalShown,
+  };
+};

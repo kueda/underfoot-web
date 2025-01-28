@@ -4,6 +4,7 @@ import React from 'react';
 import AppBar from './AppBar';
 import Map from './Map/Map';
 import PacksDialog from './PacksDialog/PacksDialog';
+import LogDialog from './LogDialog/LogDialog';
 
 import './App.css';
 import { usePackStore } from './packs/usePackStore';
@@ -32,6 +33,7 @@ function App() {
       <AppBar />
       <Map />
       <PacksDialog />
+      <LogDialog />
     </>
   );
 }

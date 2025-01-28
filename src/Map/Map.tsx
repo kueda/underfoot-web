@@ -9,7 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { usePackStore } from '../packs/usePackStore';
 import { UnderfootFeature, WaterFeature } from '../packs/types';
-import { useCurrentPackId, useMapType, useShowPacksModal } from '../useAppStore';
+import { useCurrentPackId, useMapType, useShowPacksModal, useLogging } from '../useAppStore';
 import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
 import CurrentLocationButton from './CurrentLocationButton';
 import { Citations, UnderfootFeatures } from './types';
@@ -49,6 +49,7 @@ export default function UnderfootMap() {
   const [underfootFeature, setUnderfootFeature] = useState<UnderfootFeature>();
   const [underfootFeatures, setUnderfootFeatures] = useState<UnderfootFeatures>({});
   const [citations, setCitations] = useState<Citations>({});
+  const { add: log } = useLogging();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -139,6 +140,7 @@ export default function UnderfootMap() {
 
   useEffect(() => {
     async function changePack() {
+      log('changePack');
       if (currentPackId === loadedPackId && mapType === loadedMapType) return;
       if (!map.current) return;
       if (packLoading) return;
@@ -187,10 +189,12 @@ export default function UnderfootMap() {
       changePack().catch(e => {
         const error = e as Error;
         alert(`Failed to change to pack ${currentPackId}: ${error.message}`);
+        log(error.message);
         console.error(`Failed to change to pack ${currentPackId}`, error);
       });
     }
   }, [
+    log,
     currentPackId,
     loadedMapType,
     loadedPackId,

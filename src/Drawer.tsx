@@ -2,6 +2,7 @@ import BackpackIcon from '@mui/icons-material/Backpack';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
+import HistoryIcon from '@mui/icons-material/History';
 import LandscapeIcon from '@mui/icons-material/Landscape';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -12,6 +13,7 @@ import WaterIcon from '@mui/icons-material/Water';
 import {
   ROCKS,
   WATER,
+  useLogging,
   useMapType,
   useSetMapType,
   useShowPacksModal,
@@ -29,6 +31,7 @@ export default function UnderfootDrawer({
   const showPacksModal = useShowPacksModal();
   const mapType = useMapType();
   const setMapType = useSetMapType();
+  const { showLogModal } = useLogging();
   return (
     <>
       <Drawer
@@ -62,6 +65,14 @@ export default function UnderfootDrawer({
                   <BackpackIcon />
                 </ListItemIcon>
                 <ListItemText primary="Packs" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={showLogModal}>
+                <ListItemIcon>
+                  <HistoryIcon />
+                </ListItemIcon>
+                <ListItemText primary="Log" />
               </ListItemButton>
             </ListItem>
           </List>

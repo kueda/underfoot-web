@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 // @ts-expect-error Virtual modules seem to confuse TS
 import { registerSW } from 'virtual:pwa-register';
+
 import App from './App.tsx';
 import './index.css';
 
