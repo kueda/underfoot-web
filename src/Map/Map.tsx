@@ -59,6 +59,7 @@ export default function UnderfootMap() {
         container: mapContainer.current,
         center: [-122, 38],
         zoom: 2,
+        maxZoom: 22,
         attributionControl: false,
       });
       map.current.on('load', () => {

@@ -88,12 +88,14 @@ const ROCK_STYLE: StyleSpecification = {
       type: 'vector',
       // this is pmtiles://[[protocol key]]/{z}/{x}/{y}, so the file name we declared earlier gets used here
       tiles: ['pmtiles://rocks/{z}/{x}/{y}'],
-      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      attribution: 'See unit details for attribution',
+      maxzoom: 14,
     },
     ways: {
       type: 'vector',
       tiles: ['pmtiles://ways/{z}/{x}/{y}'],
       attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      maxzoom: 13,
     },
   },
   layers: [
@@ -362,12 +364,14 @@ const WATER_STYLE: StyleSpecification = {
       type: 'vector',
       // this is pmtiles://[[protocol key]]/{z}/{x}/{y}, so the file name we declared earlier gets used here
       tiles: ['pmtiles://water/{z}/{x}/{y}'],
-      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      attribution: 'See unit details for attribution',
+      maxzoom: 14,
     },
     ways: {
       type: 'vector',
       tiles: ['pmtiles://ways/{z}/{x}/{y}'],
       attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      maxzoom: 13,
     },
   },
   layers: [
