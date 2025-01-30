@@ -156,6 +156,8 @@ export default function UnderfootMap() {
       const currentPack = await packStore.get(currentPackId);
       if (!currentPack) throw new Error(`Pack not downloaded: ${currentPackId}`);
       const packData = await currentPack.unzippedData();
+
+      // Load ways
       if (!packData.ways_pmtiles) throw new Error(`Pack ${currentPackId} did not have ways data`);
       const waysPmtiles = new pmtiles.PMTiles(
         new pmtiles.FileSource(
@@ -165,6 +167,17 @@ export default function UnderfootMap() {
         ),
       );
       protocol.add(waysPmtiles);
+
+      // Load contours
+      if (!packData.contours_pmtiles) throw new Error(`Pack ${currentPackId} did not have contours data`);
+      const contoursPmtiles = new pmtiles.PMTiles(
+        new pmtiles.FileSource(
+          // The filename is important b/c it's a key that we use to refer to
+          // this "protocol" in the sources
+          new File([packData.contours_pmtiles], 'contours'),
+        ),
+      );
+      protocol.add(contoursPmtiles);
 
       loadMapFromPackData(
         packData,

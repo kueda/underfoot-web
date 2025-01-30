@@ -1,6 +1,8 @@
 import {
   DataDrivenPropertyValueSpecification,
+  ExpressionFilterSpecification,
   LayerSpecification,
+  SourceSpecification,
   StyleSpecification,
 } from 'maplibre-gl';
 
@@ -74,11 +76,82 @@ const waysLayers: LayerSpecification[] = [
   },
 ];
 
+const contours100Filter: ExpressionFilterSpecification = [
+  '==',
+  ['%', ['get', 'elevation'], 100],
+  0,
+];
+
+const contourLayers: LayerSpecification[] = [
+  {
+    'id': 'contours100',
+    'source': 'contours',
+    'source-layer': 'contours',
+    'type': 'line',
+    'paint': {
+      'line-color': 'rgba(0,0,0,0.2)',
+      'line-width': 1,
+    },
+    'filter': contours100Filter,
+  },
+  {
+    'id': 'contours100-labels',
+    'source': 'contours',
+    'source-layer': 'contours',
+    'type': 'symbol',
+    'paint': {
+      'text-color': 'rgba(0,0,0,0.2)',
+    },
+    'layout': {
+      'symbol-placement': 'line',
+      'text-size': 8,
+      'text-field': ['concat', ['get', 'elevation'], ' m'],
+      'text-offset': [0, 0.8],
+      'text-font': ['Noto Sans Bold'],
+    },
+    'filter': contours100Filter,
+  },
+  {
+    'id': 'contours',
+    'source': 'contours',
+    'source-layer': 'contours',
+    'type': 'line',
+    'paint': {
+      'line-color': 'rgba(0,0,0,0.08)',
+      'line-width': 1,
+    },
+    'filter': [
+      '!=',
+      ['%', ['get', 'elevation'], 100],
+      0,
+    ],
+  },
+];
+
 const COMMON_STYLE: StyleSpecification = {
   version: 8,
   glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
   sources: {},
   layers: [],
+};
+
+const WAYS_SOURCE: SourceSpecification = {
+  type: 'vector',
+  tiles: ['pmtiles://ways/{z}/{x}/{y}'],
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxzoom: 13,
+};
+
+const CONTOURS_SOURCE: SourceSpecification = {
+  type: 'vector',
+  tiles: ['pmtiles://contours/{z}/{x}/{y}'],
+  attribution: '<a href="https://registry.opendata.aws/terrain-tiles">Mapzen Terrain Tiles</a>',
+  maxzoom: 14,
+};
+
+const COMMON_SOURCES = {
+  ways: WAYS_SOURCE,
+  contours: CONTOURS_SOURCE,
 };
 
 const ROCK_STYLE: StyleSpecification = {
@@ -91,12 +164,7 @@ const ROCK_STYLE: StyleSpecification = {
       attribution: 'See unit details for attribution',
       maxzoom: 14,
     },
-    ways: {
-      type: 'vector',
-      tiles: ['pmtiles://ways/{z}/{x}/{y}'],
-      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-      maxzoom: 13,
-    },
+    ...COMMON_SOURCES,
   },
   layers: [
     {
@@ -340,6 +408,7 @@ const ROCK_STYLE: StyleSpecification = {
         'line-width': 1.5,
       },
     },
+    ...contourLayers,
     ...waysLayers,
   ],
 };
@@ -367,12 +436,7 @@ const WATER_STYLE: StyleSpecification = {
       attribution: 'See unit details for attribution',
       maxzoom: 14,
     },
-    ways: {
-      type: 'vector',
-      tiles: ['pmtiles://ways/{z}/{x}/{y}'],
-      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-      maxzoom: 13,
-    },
+    ...COMMON_SOURCES,
   },
   layers: [
     {
@@ -416,6 +480,7 @@ const WATER_STYLE: StyleSpecification = {
         'line-color': WATERWAYS_COLOR_EXP,
       },
     },
+    ...contourLayers,
     ...waysLayers,
     {
       'id': 'waterways-labels',
