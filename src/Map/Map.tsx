@@ -179,6 +179,17 @@ export default function UnderfootMap() {
       );
       protocol.add(contoursPmtiles);
 
+      // Load context
+      if (!packData.context_pmtiles) throw new Error(`Pack ${currentPackId} did not have context data`);
+      const contextPmtiles = new pmtiles.PMTiles(
+        new pmtiles.FileSource(
+          // The filename is important b/c it's a key that we use to refer to
+          // this "protocol" in the sources
+          new File([packData.context_pmtiles], 'context'),
+        ),
+      );
+      protocol.add(contextPmtiles);
+
       loadMapFromPackData(
         packData,
         protocol,
@@ -190,6 +201,9 @@ export default function UnderfootMap() {
 
       const waysHeader = await waysPmtiles.getHeader();
       map.current.setZoom(waysHeader.maxZoom - 2);
+      // map.current.on('zoom', () => {
+      //   console.log('[DEBUG Map.tsx] map.current.getZoom(): ', map.current?.getZoom());
+      // });
       map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat]);
       setLoadedPackId(currentPackId);
       setLoadedMapType(mapType);

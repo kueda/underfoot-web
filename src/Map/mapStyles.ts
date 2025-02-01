@@ -6,6 +6,10 @@ import {
   StyleSpecification,
 } from 'maplibre-gl';
 
+const COLORS = {
+  water: '#1F78B4',
+};
+
 const NO_STYLE: StyleSpecification = {
   version: 8,
   sources: {},
@@ -128,6 +132,202 @@ const contourLayers: LayerSpecification[] = [
   },
 ];
 
+const placeNodeSymbolSortKey: DataDrivenPropertyValueSpecification<number> = [
+  '*', ['get', 'population'], -1,
+];
+const contextLayers: LayerSpecification[] = [
+  {
+    'id': 'villages',
+    'source': 'context',
+    'source-layer': 'underfoot_place_nodes',
+    'type': 'symbol',
+    'paint': {
+      'text-color': 'rgb(255,255,255)',
+      'text-halo-color': 'rgba(0,0,0,0.2)',
+      'text-halo-width': 1,
+    },
+    'layout': {
+      'text-size': 12,
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'symbol-sort-key': placeNodeSymbolSortKey,
+    },
+    'filter': ['match', ['get', 'place'], ['village', 'hamlet'], true, false],
+    'minzoom': 10,
+    'maxzoom': 13,
+  },
+  {
+    'id': 'towns',
+    'source': 'context',
+    'source-layer': 'underfoot_place_nodes',
+    'type': 'symbol',
+    'paint': {
+      'text-color': 'rgb(255,255,255)',
+      'text-halo-color': 'rgba(0,0,0,0.2)',
+      'text-halo-width': 1,
+    },
+    'layout': {
+      'text-size': 13,
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'symbol-sort-key': placeNodeSymbolSortKey,
+    },
+    'filter': ['match', ['get', 'place'], 'town', true, false],
+    'minzoom': 10,
+    'maxzoom': 12,
+  },
+  {
+    'id': 'cities',
+    'source': 'context',
+    'source-layer': 'underfoot_place_nodes',
+    'type': 'symbol',
+    'paint': {
+      'text-color': 'rgb(255,255,255)',
+      'text-halo-color': 'rgba(0,0,0,0.2)',
+      'text-halo-width': 1,
+    },
+    'layout': {
+      'text-size': 14,
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'symbol-sort-key': placeNodeSymbolSortKey,
+    },
+    'filter': ['match', ['get', 'place'], 'city', true, false],
+    'maxzoom': 11,
+  },
+  {
+    'id': 'peaks',
+    'source': 'context',
+    'source-layer': 'underfoot_natural_nodes',
+    'type': 'symbol',
+    'minzoom': 10,
+    'filter': [
+      'all',
+      ['match', ['get', 'natural'], 'peak', true, false],
+      [
+        'any',
+        ['>', ['length', ['get', 'name']], 0],
+        ['>', ['to-number', ['get', 'elevation_m'], -1], 0],
+      ],
+    ],
+    'layout': {
+      'text-size': 12,
+      'text-field': '▲',
+      'text-font': ['Noto Sans Bold'],
+      'text-padding': 0,
+      'text-line-height': 0,
+    },
+    'paint': {
+      'text-color': 'rgba(31.4%, 31.4%, 31.4%, 1.00)',
+      'text-halo-color': 'white',
+      'text-halo-width': 1,
+    },
+  },
+  {
+    'id': 'peaks-labels',
+    'source': 'context',
+    'source-layer': 'underfoot_natural_nodes',
+    'type': 'symbol',
+    'minzoom': 10,
+    'filter': [
+      'all',
+      ['match', ['get', 'natural'], 'peak', true, false],
+      [
+        'any',
+        ['>', ['length', ['get', 'name']], 0],
+        ['>', ['to-number', ['get', 'elevation_m'], -1], 0],
+      ],
+    ],
+    'layout': {
+      'text-size': 10,
+      'text-field': [
+        'case',
+        [
+          'all',
+          ['>', ['length', ['get', 'name']], 0],
+          ['>', ['to-number', ['get', 'elevation_m'], -1], 0],
+        ],
+        [
+          'concat',
+          ['get', 'name'],
+          '\n',
+          ['round', ['to-number', ['get', 'elevation_m']]],
+          ' m',
+        ],
+        [
+          'coalesce',
+          ['get', 'name'],
+          ['to-string', ['round', ['to-number', ['get', 'elevation_m']]]],
+        ],
+      ],
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, 1.8],
+      'text-max-width': 20,
+    },
+    'paint': {
+      'text-color': 'rgba(31.4%, 31.4%, 31.4%, 1.00)',
+      'text-halo-color': 'white',
+      'text-halo-width': 1,
+    },
+  },
+  {
+    'id': 'springs',
+    'source': 'context',
+    'source-layer': 'underfoot_natural_nodes',
+    'type': 'symbol',
+    'minzoom': 12,
+    'filter': ['match', ['get', 'natural'], 'spring', true, false],
+    'layout': {
+      'text-size': 12,
+      'text-field': '⌇',
+      'text-font': ['Noto Sans Bold'],
+    },
+    'paint': {
+      'text-color': COLORS.water,
+      'text-halo-color': 'white',
+      'text-halo-width': 1,
+    },
+  },
+  {
+    'id': 'springs-labels',
+    'source': 'context',
+    'source-layer': 'underfoot_natural_nodes',
+    'type': 'symbol',
+    'minzoom': 12,
+    'filter': ['match', ['get', 'natural'], 'spring', true, false],
+    'layout': {
+      'text-size': 10,
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, 2],
+      'text-max-width': 20,
+    },
+    'paint': {
+      'text-color': COLORS.water,
+      'text-halo-color': 'white',
+      'text-halo-width': 1,
+    },
+  },
+  {
+    'id': 'mountain-range-labels',
+    'source': 'context',
+    'source-layer': 'underfoot_natural_ways',
+    'type': 'symbol',
+    'layout': {
+      'symbol-placement': 'line',
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'text-size': 16,
+      'text-transform': 'uppercase',
+      'text-letter-spacing': 0.9,
+      'text-allow-overlap': true,
+    },
+    'paint': {
+      'text-color': 'rgb(255,255,255)',
+    },
+  },
+];
+
 const COMMON_STYLE: StyleSpecification = {
   version: 8,
   glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
@@ -149,9 +349,17 @@ const CONTOURS_SOURCE: SourceSpecification = {
   maxzoom: 14,
 };
 
+const CONTEXT_SOURCE: SourceSpecification = {
+  type: 'vector',
+  tiles: ['pmtiles://context/{z}/{x}/{y}'],
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxzoom: 14,
+};
+
 const COMMON_SOURCES = {
   ways: WAYS_SOURCE,
   contours: CONTOURS_SOURCE,
+  context: CONTEXT_SOURCE,
 };
 
 const ROCK_STYLE: StyleSpecification = {
@@ -410,6 +618,7 @@ const ROCK_STYLE: StyleSpecification = {
     },
     ...contourLayers,
     ...waysLayers,
+    ...contextLayers,
   ],
 };
 
@@ -423,7 +632,7 @@ const WATERWAYS_COLOR_EXP: DataDrivenPropertyValueSpecification<string> = [
   // mappings
   [0], '#FF7F00',
 
-  '#1F78B4',
+  COLORS.water,
 ];
 
 const WATER_STYLE: StyleSpecification = {
@@ -466,7 +675,7 @@ const WATER_STYLE: StyleSpecification = {
       'source-layer': 'waterbodies',
       'type': 'fill',
       'paint': {
-        'fill-color': '#1F78B4',
+        'fill-color': COLORS.water,
       },
     },
     {
@@ -482,6 +691,7 @@ const WATER_STYLE: StyleSpecification = {
     },
     ...contourLayers,
     ...waysLayers,
+    ...contextLayers,
     {
       'id': 'waterways-labels',
       'source': 'water',
