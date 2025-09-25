@@ -57,9 +57,13 @@ export class Pack {
     zip.forEach(path => zipPaths.push(path));
     await Promise.all(zipPaths.map(async path => {
       const fname = path.split('/').pop();
-      if (!fname || !zip.file(path) || zip.file(path)?.dir) return;
+      if (!fname || !zip.file(path) || zip.file(path)?.dir) {
+        throw new Error(`Zip does not contain file: ${path}`);
+      }
       const data = await zip.file(path)?.async('blob');
-      if (!data) return;
+      if (!data) {
+        throw new Error(`Path exists but is empty: ${path}`);
+      }
       switch (fname) {
         case 'rocks.pmtiles':
           unzipped.rocks_pmtiles = data;

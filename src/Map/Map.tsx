@@ -155,40 +155,81 @@ export default function UnderfootMap() {
       }
       const currentPack = await packStore.get(currentPackId);
       if (!currentPack) throw new Error(`Pack not downloaded: ${currentPackId}`);
-      const packData = await currentPack.unzippedData();
+      let packData;
+      try {
+        packData = await currentPack.unzippedData();
+      }
+      catch (e) {
+        const unzipError = e as Error;
+        log(`changePack failed to unzip: ${unzipError.message}`);
+        throw unzipError;
+      }
 
       // Load ways
       if (!packData.ways_pmtiles) throw new Error(`Pack ${currentPackId} did not have ways data`);
-      const waysPmtiles = new pmtiles.PMTiles(
-        new pmtiles.FileSource(
-          // The filename is important b/c it's a key that we use to refer to
-          // this "protocol" in the sources
-          new File([packData.ways_pmtiles], 'ways'),
-        ),
-      );
-      protocol.add(waysPmtiles);
+      let waysPmtiles;
+      try {
+        waysPmtiles = new pmtiles.PMTiles(
+          new pmtiles.FileSource(
+            // The filename is important b/c it's a key that we use to refer to
+            // this "protocol" in the sources
+            new File([packData.ways_pmtiles], 'ways'),
+          ),
+        );
+        protocol.add(waysPmtiles);
+        // Validate that PMTiles is actually accessible
+        await waysPmtiles.getHeader();
+        log(`Successfully loaded ways PMTiles for pack ${currentPackId}`);
+      }
+      catch (waysError) {
+        const error = waysError as Error;
+        log(`Failed to load ways PMTiles: ${error.message}`);
+        throw new Error(`Failed to load ways data for pack ${currentPackId}: ${error.message}`);
+      }
 
       // Load contours
       if (!packData.contours_pmtiles) throw new Error(`Pack ${currentPackId} did not have contours data`);
-      const contoursPmtiles = new pmtiles.PMTiles(
-        new pmtiles.FileSource(
-          // The filename is important b/c it's a key that we use to refer to
-          // this "protocol" in the sources
-          new File([packData.contours_pmtiles], 'contours'),
-        ),
-      );
-      protocol.add(contoursPmtiles);
+      let contoursPmtiles;
+      try {
+        contoursPmtiles = new pmtiles.PMTiles(
+          new pmtiles.FileSource(
+            // The filename is important b/c it's a key that we use to refer to
+            // this "protocol" in the sources
+            new File([packData.contours_pmtiles], 'contours'),
+          ),
+        );
+        protocol.add(contoursPmtiles);
+        // Validate that PMTiles is actually accessible
+        await contoursPmtiles.getHeader();
+        log(`Successfully loaded contours PMTiles for pack ${currentPackId}`);
+      }
+      catch (contoursError) {
+        const error = contoursError as Error;
+        log(`Failed to load contours PMTiles: ${error.message}`);
+        throw new Error(`Failed to load contours data for pack ${currentPackId}: ${error.message}`);
+      }
 
       // Load context
       if (!packData.context_pmtiles) throw new Error(`Pack ${currentPackId} did not have context data`);
-      const contextPmtiles = new pmtiles.PMTiles(
-        new pmtiles.FileSource(
-          // The filename is important b/c it's a key that we use to refer to
-          // this "protocol" in the sources
-          new File([packData.context_pmtiles], 'context'),
-        ),
-      );
-      protocol.add(contextPmtiles);
+      let contextPmtiles;
+      try {
+        contextPmtiles = new pmtiles.PMTiles(
+          new pmtiles.FileSource(
+            // The filename is important b/c it's a key that we use to refer to
+            // this "protocol" in the sources
+            new File([packData.context_pmtiles], 'context'),
+          ),
+        );
+        protocol.add(contextPmtiles);
+        // Validate that PMTiles is actually accessible
+        await contextPmtiles.getHeader();
+        log(`Successfully loaded context PMTiles for pack ${currentPackId}`);
+      }
+      catch (contextError) {
+        const error = contextError as Error;
+        log(`Failed to load context PMTiles: ${error.message}`);
+        throw new Error(`Failed to load context data for pack ${currentPackId}: ${error.message}`);
+      }
 
       loadMapFromPackData(
         packData,
