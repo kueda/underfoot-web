@@ -29,6 +29,7 @@ interface LogEntry {
 interface LogState {
   log: LogEntry[];
   logModalShown: boolean;
+  addLog: (message: string) => void;
   showLogModal: () => void;
   hideLogModal: () => void;
 }
@@ -73,6 +74,13 @@ const useAppStore = create<AppState>(set => ({
   logging: {
     log: [],
     logModalShown: false,
+    addLog: (message: string) => {
+      console.log(message);
+      set(state => {
+        state.logging.log.push({ date: new Date(), body: message });
+        return { logging: state.logging };
+      });
+    },
     showLogModal: () => set(state => {
       state.logging.logModalShown = true;
       return { logging: state.logging };
@@ -96,16 +104,20 @@ export const useSetMapType = () => useAppStore(s => s.map.setMapType);
 export const usePacksModalShown = () => useAppStore(s => s.packsModal.packsModalShown);
 export const useShowPacksModal = () => useAppStore(s => s.packsModal.showPacksModal);
 export const useHidePacksModal = () => useAppStore(s => s.packsModal.hidePacksModal);
+
+// Export addLog function for use outside components
+export const addLog = (message: string) => {
+  useAppStore.getState().logging.addLog(message);
+};
+
 export const useLogging = () => {
   const log = useAppStore(s => s.logging.log);
   const showLogModal = useAppStore(s => s.logging.showLogModal);
   const hideLogModal = useAppStore(s => s.logging.hideLogModal);
   const logModalShown = useAppStore(s => s.logging.logModalShown);
+  const addLogFn = useAppStore(s => s.logging.addLog);
   return {
-    add: (newLog: string) => {
-      console.log(newLog);
-      log.push({ date: new Date(), body: newLog });
-    },
+    add: addLogFn,
     showLogModal,
     hideLogModal,
     log,

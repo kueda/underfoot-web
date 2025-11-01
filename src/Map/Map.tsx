@@ -9,7 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { usePackStore } from '../packs/usePackStore';
 import { UnderfootFeature, WaterFeature } from '../packs/types';
-import { useCurrentPackId, useMapType, useShowPacksModal, useLogging } from '../useAppStore';
+import { addLog, useCurrentPackId, useMapType, useShowPacksModal, useLogging } from '../useAppStore';
 import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
 import CurrentLocationButton from './CurrentLocationButton';
 import { Citations, UnderfootFeatures } from './types';
@@ -19,13 +19,25 @@ import { loadMapFromPackData } from './util';
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol('pmtiles', request => {
+  // Log tile requests for debugging
+  const tileMatch = request.url.match(/pmtiles:\/\/(\w+)\/(\d+)\/(\d+)\/(\d+)/);
+  if (tileMatch) {
+    const [, source, z, x, y] = tileMatch;
+    addLog(`[PMTiles] Requesting tile ${source} ${z}/${x}/${y}`);
+  }
+
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (err: Error | undefined, data: any) => {
       if (err) {
+        addLog(`[PMTiles] Tile fetch failed: ${err.message}`);
         reject(err);
       }
       else {
+        if (tileMatch) {
+          const [, source] = tileMatch;
+          addLog(`[PMTiles] Tile fetch succeeded for ${source}`);
+        }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         resolve({ data });
       }
@@ -64,6 +76,20 @@ export default function UnderfootMap() {
       });
       map.current.on('load', () => {
         setMapLoaded(true);
+        log('Map initial load complete');
+      });
+      map.current.on('idle', () => {
+        log('Map idle - all tiles loaded and rendered');
+      });
+      map.current.on('sourcedata', e => {
+        if (e.isSourceLoaded) {
+          log(`Source ${e.sourceId} finished loading`);
+        }
+      });
+      map.current.on('error', e => {
+        const errorMessage = (e.error as Error | undefined)?.message || 'Unknown error';
+        log(`Map error: ${errorMessage}`);
+        console.error('[Map] Error event:', e);
       });
       map.current.on('click', clickEvent => {
         map.current?.panTo(clickEvent.lngLat);
@@ -100,7 +126,7 @@ export default function UnderfootMap() {
         setMapFeature(undefined);
       }
     });
-  }, [loadedMapType, map, mapContainer]);
+  }, [loadedMapType, log, map, mapContainer]);
 
   useEffect(() => {
     if (!loadedMapType) return;
@@ -231,6 +257,7 @@ export default function UnderfootMap() {
         throw new Error(`Failed to load context data for pack ${currentPackId}: ${error.message}`);
       }
 
+      log(`Calling loadMapFromPackData for ${mapType}`);
       loadMapFromPackData(
         packData,
         protocol,
@@ -239,6 +266,15 @@ export default function UnderfootMap() {
         setUnderfootFeatures,
         setCitations,
       );
+
+      // Track style loading completion
+      void map.current.once('styledata', () => {
+        log(`Map styledata event fired for pack ${currentPackId}`);
+      });
+
+      void map.current.once('style.load', () => {
+        log(`Map style.load event fired for pack ${currentPackId}`);
+      });
 
       const waysHeader = await waysPmtiles.getHeader();
       map.current.setZoom(waysHeader.maxZoom - 2);
