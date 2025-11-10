@@ -79,7 +79,7 @@ export default function UnderfootMap() {
         log('Map initial load complete');
       });
       map.current.on('idle', () => {
-        log('Map idle - all tiles loaded and rendered');
+        log(`Map idle - layers order: ${JSON.stringify(map.current?.getLayersOrder())}`);
       });
       map.current.on('sourcedata', e => {
         if (e.isSourceLoaded) {
@@ -87,8 +87,27 @@ export default function UnderfootMap() {
         }
       });
       map.current.on('error', e => {
-        const errorMessage = (e.error as Error | undefined)?.message || 'Unknown error';
-        log(`Map error: ${errorMessage}`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const errorEvent = e as any;
+        const error = e.error as Error | undefined;
+        const errorMessage = error?.message || 'Unknown error';
+        const errorType = error?.name || 'Error';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const sourceId = errorEvent.sourceId || 'unknown source';
+
+        let detailedMessage = `Map error [${errorType}]: ${errorMessage}`;
+        if (sourceId !== 'unknown source') detailedMessage += ` (source: ${sourceId})`;
+
+        // Try to extract tile info if available
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (errorEvent.tile?.tileID?.canonical) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+          const canonical = errorEvent.tile.tileID.canonical;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          detailedMessage += ` (tile ${canonical.z}/${canonical.x}/${canonical.y})`;
+        }
+
+        log(detailedMessage);
         console.error('[Map] Error event:', e);
       });
       map.current.on('click', clickEvent => {

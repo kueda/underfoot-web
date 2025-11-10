@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -15,6 +16,22 @@ import { useLogging } from '../useAppStore';
 
 export default function LogDialog() {
   const { log, logModalShown, hideLogModal } = useLogging();
+
+  const handleExport = () => {
+    const logText = log.map(entry => {
+      return `${entry.date.toISOString()} - ${entry.body}`;
+    }).join('\n');
+
+    const blob = new Blob([logText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `underfoot-log-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
   return (
@@ -34,9 +51,16 @@ export default function LogDialog() {
         >
           <CloseIcon />
         </IconButton>
-        <DialogTitle>
+        <DialogTitle sx={{ flex: 1 }}>
           Log
         </DialogTitle>
+        <IconButton
+          color="inherit"
+          onClick={handleExport}
+          aria-label="export log"
+        >
+          <DownloadIcon />
+        </IconButton>
       </Toolbar>
       <DialogContent>
         <Table size="small">
