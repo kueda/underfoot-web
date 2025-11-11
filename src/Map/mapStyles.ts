@@ -330,7 +330,7 @@ const contextLayers: LayerSpecification[] = [
 
 const COMMON_STYLE: StyleSpecification = {
   version: 8,
-  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  glyphs: '/fonts/{fontstack}/{range}.pbf',
   sources: {},
   layers: [],
 };

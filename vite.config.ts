@@ -22,6 +22,7 @@ export default defineConfig({
         'icon-192x192.png',
         'icon-512x512.png',
         'mask-icon.svg',
+        'fonts/**/*.pbf',
       ],
       manifest: {
         name: 'Underfoot',
