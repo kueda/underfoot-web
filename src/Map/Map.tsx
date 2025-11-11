@@ -16,11 +16,55 @@ import { Citations, UnderfootFeatures } from './types';
 import { NO_STYLE } from './mapStyles';
 import { loadMapFromPackData } from './util';
 
+// Wrap native fetch to monitor all network requests and log failures
+const originalFetch = window.fetch;
+window.fetch = async (...args) => {
+  const [resource] = args;
+  const url = typeof resource === 'string'
+    ? resource
+    : resource instanceof Request
+      ? resource.url
+      : resource.href;
+  const startTime = performance.now();
+
+  try {
+    const response = await originalFetch(...args);
+    const elapsed = (performance.now() - startTime).toFixed(0);
+
+    if (!response.ok) {
+      const resourceType = url.includes('/font/')
+        ? 'font'
+        : url.includes('.pbf')
+          ? 'tile'
+          : url.includes('.json')
+            ? 'metadata'
+            : 'resource';
+      addLog(`[Fetch] Failed to load ${resourceType}: ${url} (${response.status} ${response.statusText}, ${elapsed}ms)`);
+    }
+
+    return response;
+  }
+  catch (error) {
+    const elapsed = (performance.now() - startTime).toFixed(0);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const resourceType = url.includes('/font/')
+      ? 'font'
+      : url.includes('.pbf')
+        ? 'tile'
+        : url.includes('.json')
+          ? 'metadata'
+          : 'resource';
+    addLog(`[Fetch] Network error loading ${resourceType}: ${url} (${errorMessage}, ${elapsed}ms)`);
+    throw error;
+  }
+};
+
 // add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol('pmtiles', request => {
   // Log tile requests for debugging
   const tileMatch = request.url.match(/pmtiles:\/\/(\w+)\/(\d+)\/(\d+)\/(\d+)/);
+  const requestStart = performance.now();
   if (tileMatch) {
     const [, source, z, x, y] = tileMatch;
     addLog(`[PMTiles] Requesting tile ${source} ${z}/${x}/${y}`);
@@ -29,14 +73,17 @@ maplibregl.addProtocol('pmtiles', request => {
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (err: Error | undefined, data: any) => {
+      const elapsed = (performance.now() - requestStart).toFixed(0);
       if (err) {
-        addLog(`[PMTiles] Tile fetch failed: ${err.message}`);
+        addLog(`[PMTiles] Tile fetch failed after ${elapsed}ms: ${err.message}`);
         reject(err);
       }
       else {
         if (tileMatch) {
           const [, source] = tileMatch;
-          addLog(`[PMTiles] Tile fetch succeeded for ${source}`);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+          const dataSize = data?.byteLength || data?.length || 0;
+          addLog(`[PMTiles] Tile fetch succeeded for ${source} (${dataSize} bytes, ${elapsed}ms)`);
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         resolve({ data });
@@ -85,6 +132,33 @@ export default function UnderfootMap() {
         if (e.isSourceLoaded) {
           log(`Source ${e.sourceId} finished loading`);
         }
+      });
+      map.current.on('data', e => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const dataType = (e as any).dataType;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const sourceId = (e as any).sourceId;
+        if (dataType === 'style') {
+          log('[MapLibre] Style data loaded');
+        }
+        else if (dataType === 'source' && sourceId) {
+          log(`[MapLibre] Source metadata loaded: ${sourceId}`);
+        }
+      });
+      map.current.on('dataloading', e => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const dataType = (e as any).dataType;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const sourceId = (e as any).sourceId;
+        if (dataType === 'style') {
+          log('[MapLibre] Loading style data...');
+        }
+        else if (dataType === 'source' && sourceId) {
+          log(`[MapLibre] Loading source metadata: ${sourceId}`);
+        }
+      });
+      map.current.on('styleimagemissing', e => {
+        log(`[MapLibre] Missing style image: ${e.id}`);
       });
       map.current.on('error', e => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
