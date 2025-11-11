@@ -330,7 +330,7 @@ const contextLayers: LayerSpecification[] = [
 
 const COMMON_STYLE: StyleSpecification = {
   version: 8,
-  glyphs: '/fonts/{fontstack}/{range}.pbf',
+  glyphs: 'fonts/{fontstack}/{range}.pbf',
   sources: {},
   layers: [],
 };
