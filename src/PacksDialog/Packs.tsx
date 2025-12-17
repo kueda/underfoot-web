@@ -76,7 +76,7 @@ export default function Packs() {
       </Toolbar>
       <DialogContent>
         <DialogContentText>
-          Download map data for use offline.
+          <p>Download map data for use offline. Right now it&apos;s mostly just regions of California.</p>
         </DialogContentText>
 
         <TabContext value={currentTab}>

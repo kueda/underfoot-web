@@ -413,9 +413,21 @@ export default function UnderfootMap() {
         </>
       ) }
       { !loadedPackId && !packLoading && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <p>Welcome to Underfoot! To get started,</p>
-          <Button onClick={showPacksModal} variant="contained">DOWNLOAD SOME DATA</Button>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            maxWidth: '50%',
+            textAlign: 'center',
+          }}
+        >
+          <p>
+            Welcome to Underfoot, an offline geologic and hydrologic map!
+            <br />
+            To get started, download some data to use offline.
+          </p>
+          <Button onClick={showPacksModal} variant="contained">DOWNLOAD MAP DATA</Button>
         </div>
       )}
       <Modal
