@@ -21,7 +21,7 @@ if ('serviceWorker' in navigator) {
       }
     },
     onOfflineReady() {
-      alert('Ready to work offline');
+      // alert('Ready to work offline');
     },
   });
 }
