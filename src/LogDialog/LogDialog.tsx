@@ -52,7 +52,7 @@ export default function LogDialog() {
           <CloseIcon />
         </IconButton>
         <DialogTitle sx={{ flex: 1 }}>
-          Log
+          Debug Log
         </DialogTitle>
         <IconButton
           color="inherit"

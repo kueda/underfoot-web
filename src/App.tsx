@@ -5,6 +5,7 @@ import AppBar from './AppBar';
 import Map from './Map/Map';
 import PacksDialog from './PacksDialog/PacksDialog';
 import LogDialog from './LogDialog/LogDialog';
+import AboutDialog from './AboutDialog/AboutDialog';
 
 import './App.css';
 import { usePackStore } from './packs/usePackStore';
@@ -34,6 +35,7 @@ function App() {
       <Map />
       <PacksDialog />
       <LogDialog />
+      <AboutDialog />
     </>
   );
 }

@@ -34,11 +34,18 @@ interface LogState {
   hideLogModal: () => void;
 }
 
+interface AboutModalState {
+  aboutModalShown: boolean;
+  showAboutModal: () => void;
+  hideAboutModal: () => void;
+}
+
 export interface AppState {
   currentPack: CurrentPackState;
   map: MapTypeState;
   packsModal: PacksModalState;
   logging: LogState;
+  aboutModal: AboutModalState;
 }
 
 const useAppStore = create<AppState>(set => ({
@@ -90,6 +97,17 @@ const useAppStore = create<AppState>(set => ({
       return { logging: state.logging };
     }),
   },
+  aboutModal: {
+    aboutModalShown: false,
+    showAboutModal: () => set(state => {
+      state.aboutModal.aboutModalShown = true;
+      return { aboutModal: state.aboutModal };
+    }),
+    hideAboutModal: () => set(state => {
+      state.aboutModal.aboutModalShown = false;
+      return { aboutModal: state.aboutModal };
+    }),
+  },
 }));
 
 // Selectors
@@ -104,6 +122,9 @@ export const useSetMapType = () => useAppStore(s => s.map.setMapType);
 export const usePacksModalShown = () => useAppStore(s => s.packsModal.packsModalShown);
 export const useShowPacksModal = () => useAppStore(s => s.packsModal.showPacksModal);
 export const useHidePacksModal = () => useAppStore(s => s.packsModal.hidePacksModal);
+export const useAboutModalShown = () => useAppStore(s => s.aboutModal.aboutModalShown);
+export const useShowAboutModal = () => useAppStore(s => s.aboutModal.showAboutModal);
+export const useHideAboutModal = () => useAppStore(s => s.aboutModal.hideAboutModal);
 
 // Export addLog function for use outside components
 export const addLog = (message: string) => {

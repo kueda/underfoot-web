@@ -10,6 +10,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WaterIcon from '@mui/icons-material/Water';
+import InfoIcon from '@mui/icons-material/Info';
+
 import {
   ROCKS,
   WATER,
@@ -17,6 +19,7 @@ import {
   useMapType,
   useSetMapType,
   useShowPacksModal,
+  useShowAboutModal,
 } from './useAppStore';
 
 interface DrawerProps {
@@ -29,6 +32,7 @@ export default function UnderfootDrawer({
   setDrawerOpen,
 }: DrawerProps) {
   const showPacksModal = useShowPacksModal();
+  const showAboutModal = useShowAboutModal();
   const mapType = useMapType();
   const setMapType = useSetMapType();
   const { showLogModal } = useLogging();
@@ -72,7 +76,15 @@ export default function UnderfootDrawer({
                 <ListItemIcon>
                   <HistoryIcon />
                 </ListItemIcon>
-                <ListItemText primary="Log" />
+                <ListItemText primary="Debug Log" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={showAboutModal}>
+                <ListItemIcon>
+                  <InfoIcon />
+                </ListItemIcon>
+                <ListItemText primary="About" />
               </ListItemButton>
             </ListItem>
           </List>

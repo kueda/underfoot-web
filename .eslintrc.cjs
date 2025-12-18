@@ -39,5 +39,7 @@ module.exports = {
     'import/no-unresolved': 'off',
     'import/order': 'error',
     '@stylistic/arrow-parens': ['error', 'as-needed'],
+    '@stylistic/jsx-one-expression-per-line': 'off',
+    'react/no-unescaped-entities': 'off',
   },
 }
