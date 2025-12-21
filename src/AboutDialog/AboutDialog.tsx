@@ -57,7 +57,7 @@ export default function PacksDialog() {
           This is a hobby project so it's kind of forever <strong>🚧 under construction 🚧</strong>.
           If you're curious, the&nbsp;
           <a href="https://github.com/kueda/underfoot">data prep code</a> and&nbsp;
-          <a href="https://github.com/kueda/underfoot">web app code</a> are open-source.
+          <a href="https://github.com/kueda/underfoot-web">web app code</a> are open-source.
         </p>
 
         <p>Some notes on sources and attribution:</p>
