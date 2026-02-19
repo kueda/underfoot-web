@@ -4,7 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
-import { RockUnit, UnderfootFeature, WaterFeature } from '../../packs/types';
+import type { RockUnit, UnderfootFeature, WaterFeature } from '../../packs/types';
 import RocksHeader from './RocksHeader';
 import RocksBody from './RocksBody';
 import WaterHeader from './WaterHeader';

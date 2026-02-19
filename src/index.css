@@ -132,14 +132,10 @@ body {
   }
 }
 
-.MapBottomSheetHeaderActions {
-  display: 'flex',
-  alignItems: 'start'
-}
-
 .MapBottomSheetBody {
   padding: 0 20px 20px 20px;
   height: 100%;
+  user-select: text;
 }
 
 .scrollable .MapBottomSheetBody {
