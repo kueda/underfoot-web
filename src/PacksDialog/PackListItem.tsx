@@ -8,8 +8,11 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Radio from '@mui/material/Radio';
+import { Refresh } from '@mui/icons-material';
 import StopIcon from '@mui/icons-material/Stop';
-import { useState } from 'react';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import { useRef, useState } from 'react';
 
 import { Pack } from '../packs/Pack';
 import { PackStore } from '../packs/types';
@@ -32,26 +35,30 @@ const PackListItem = ({
   packStore,
 }: Props) => {
   const isDownloaded = !!pack.zippedData;
+  const hasUpdate = isDownloaded
+    && !!pack.downloadedAt
+    && pack.updatedAt > pack.downloadedAt;
   const [downloadProgress, setDownloadProgress] = useState<null | { loadedBytes: number; totalBytes: number }>(null);
   const [abortController, setAbortController] = useState(new AbortController());
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = useRef(false);
+  const handleDownload = () => {
+    const ac = new AbortController();
+    setAbortController(ac);
+    packStore.download(pack.id, { onProgress: setDownloadProgress, signal: ac.signal })
+      .then(() => (typeof (onDownload) === 'function' ? onDownload() : null))
+      .then(() => (typeof (onChoose) === 'function' ? onChoose(pack.id) : null))
+      .catch((e: Error) => {
+        if (e?.message?.match(/aborted/)) {
+          setDownloadProgress(null);
+          return;
+        }
+        console.error('Failed to download pack', e);
+      });
+  };
   let secondaryAction;
-  if (isDownloaded) {
-    secondaryAction = (
-      <IconButton
-        edge="end"
-        aria-label="delete"
-        onClick={() => {
-          packStore.remove(pack.id)
-            .then(() => (typeof (onDelete) === 'function' ? onDelete() : null))
-            .then(() => (typeof (onChoose) === 'function' ? onChoose(null) : null))
-            .catch(e => console.error('Problem deleting pack: ', e));
-        }}
-      >
-        <DeleteIcon />
-      </IconButton>
-    );
-  }
-  else if (downloadProgress) {
+  if (downloadProgress) {
     const progress = Math.round(downloadProgress.loadedBytes / downloadProgress.totalBytes * 100);
     secondaryAction = (
       <Box sx={{ position: 'relative', display: 'inline-flex', mr: -1.5 }}>
@@ -72,26 +79,73 @@ const PackListItem = ({
       </Box>
     );
   }
+  else if (isDownloaded) {
+    const deleteButton = (
+      <IconButton
+        edge="end"
+        aria-label="delete"
+        onClick={() => {
+          packStore.remove(pack.id)
+            .then(() => (typeof (onDelete) === 'function' ? onDelete() : null))
+            .then(() => (typeof (onChoose) === 'function' ? onChoose(null) : null))
+            .catch(e => console.error('Problem deleting pack: ', e));
+        }}
+      >
+        <DeleteIcon />
+      </IconButton>
+    );
+    secondaryAction = hasUpdate
+      ? (
+          <>
+            <IconButton
+              edge="end"
+              aria-label="update"
+              onPointerDown={e => {
+                longPressTriggered.current = false;
+                const target = e.currentTarget;
+                longPressTimer.current = setTimeout(() => {
+                  longPressTriggered.current = true;
+                  setMenuAnchor(target);
+                }, 500);
+              }}
+              onPointerUp={() => {
+                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+              }}
+              onClick={() => {
+                if (!longPressTriggered.current) handleDownload();
+              }}
+            >
+              <Refresh />
+            </IconButton>
+            <Menu
+              anchorEl={menuAnchor}
+              open={!!menuAnchor}
+              onClose={() => setMenuAnchor(null)}
+            >
+              <MenuItem
+                onClick={() => {
+                  setMenuAnchor(null);
+                  packStore.remove(pack.id)
+                    .then(() => (typeof (onDelete) === 'function' ? onDelete() : null))
+                    .then(() => (typeof (onChoose) === 'function' ? onChoose(null) : null))
+                    .catch(e => console.error('Problem deleting pack: ', e));
+                }}
+              >
+                <ListItemIcon><DeleteIcon /></ListItemIcon>
+                Delete
+              </MenuItem>
+            </Menu>
+          </>
+        )
+      : deleteButton;
+  }
   else {
     secondaryAction = (
       <IconButton
         edge="end"
         color="primary"
         aria-label="download"
-        onClick={() => {
-          const ac = new AbortController();
-          setAbortController(ac);
-          packStore.download(pack.id, { onProgress: setDownloadProgress, signal: ac.signal })
-            .then(() => (typeof (onDownload) === 'function' ? onDownload() : null))
-            .then(() => (typeof (onChoose) === 'function' ? onChoose(pack.id) : null))
-            .catch((e: Error) => {
-              if (e?.message?.match(/aborted/)) {
-                setDownloadProgress(null);
-                return;
-              }
-              console.error('Failed to download pack', e);
-            });
-        }}
+        onClick={handleDownload}
       >
         <FileDownloadIcon />
       </IconButton>
@@ -105,7 +159,7 @@ const PackListItem = ({
     >
       <ListItemButton
         disabled={!isDownloaded}
-        sx={{ px: 0 }}
+        sx={{ pl: 0, paddingRight: '0 !important' }}
         onClick={() => {
           packStore.setCurrent(pack.id);
           if (typeof (onChoose) === 'function') onChoose(pack.id);
@@ -124,12 +178,15 @@ const PackListItem = ({
             noWrap: true,
           }}
           secondary={
-            [
-              pack.description,
-              // pack instanceof StoredPack
-              //   ? ` (ways: ${prettyBytes( downloadedPacks[pack.id]?.['ways']?.size || 0 )}, rocks: ${prettyBytes( downloadedPacks[pack.id]?.rocks?.size || 0 )}, water: ${prettyBytes( downloadedPacks[pack.id]?.water?.size || 0 )}, context: ${prettyBytes( downloadedPacks[pack.id]?.context?.size || 0 )}, , contours: ${prettyBytes( downloadedPacks[pack.id]?.contours?.size || 0 )})`
-              //   : ""
-            ].join(' ')
+            hasUpdate
+              ? (
+                  <>
+                    <strong>Update Available</strong>
+                    {' '}
+                    {pack.description}
+                  </>
+                )
+              : pack.description
           }
           secondaryTypographyProps={{
             noWrap: true,

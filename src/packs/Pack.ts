@@ -6,6 +6,7 @@ export class Pack {
   admin2: string;
   bbox: PackBoundingBox;
   description: string;
+  downloadedAt?: string;
   id: string;
   name: string;
   path?: string;
@@ -26,7 +27,7 @@ export class Pack {
   }
 
   static fromPack(pack: Pack): Pack {
-    return new Pack(
+    const newPack = new Pack(
       {
         admin1: pack.admin1,
         admin2: pack.admin2,
@@ -40,6 +41,8 @@ export class Pack {
       },
       pack.zippedData,
     );
+    newPack.downloadedAt = pack.downloadedAt;
+    return newPack;
   }
 
   async unzippedData(): Promise<UnzippedPackData> {

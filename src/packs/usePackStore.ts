@@ -35,7 +35,11 @@ export function usePackStore(): PackStore {
     const storedPack = await packStore.getItem<Pack>(packId);
     if (storedPack) {
       // Instantiate a full Pack object so we have all the instance methods
-      return Pack.fromPack(storedPack);
+      const localPack = Pack.fromPack(storedPack);
+      // Use the manifest's current updatedAt so we can detect if a newer version is available
+      const manifestPack = manifest?.packs.find((pack: Pack) => pack.id === packId);
+      if (manifestPack) localPack.updatedAt = manifestPack.updatedAt;
+      return localPack;
     }
     return manifest?.packs.find((pack: Pack) => pack.id === packId);
   }, [manifest]);
@@ -114,6 +118,7 @@ export function usePackStore(): PackStore {
       name: pack.name,
       updated_at: pack.updatedAt,
     }, blob);
+    storedPack.downloadedAt = new Date().toISOString();
     // Save that pack to disk
     await packStore.setItem(packId, storedPack);
     if (!currentPackId) {
