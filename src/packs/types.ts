@@ -77,6 +77,6 @@ export interface PackStore {
   listLocal: () => Promise<Pack[]>;
   manifest: Manifest | undefined;
   remove: (packId: string) => Promise<void>;
-  setCurrent: (packId: string) => void;
+  setCurrent: (packId: string | null) => void;
   error: Error | null;
 }

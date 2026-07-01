@@ -9,7 +9,14 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { usePackStore } from '../packs/usePackStore';
 import { UnderfootFeature, WaterFeature } from '../packs/types';
-import { addLog, useCurrentPackId, useMapType, useShowPacksModal, useLogging } from '../useAppStore';
+import {
+  addLog,
+  useCurrentPackId,
+  useMapType,
+  useSetCurrentPackId,
+  useShowPacksModal,
+  useLogging,
+} from '../useAppStore';
 import MapBottomSheet from './MapBottomSheet/MapBottomSheet';
 import CurrentLocationButton from './CurrentLocationButton';
 import { Citations, UnderfootFeatures } from './types';
@@ -98,6 +105,7 @@ export default function UnderfootMap() {
   const map = useRef<Map>();
   const mapType = useMapType();
   const currentPackId = useCurrentPackId();
+  const setCurrentPackId = useSetCurrentPackId();
   const showPacksModal = useShowPacksModal();
   const packStore = usePackStore();
   const [loadedPackId, setLoadedPackId] = useState<string | null>(null);
@@ -273,7 +281,7 @@ export default function UnderfootMap() {
         return;
       }
       const currentPack = await packStore.get(currentPackId);
-      if (!currentPack) throw new Error(`Pack not downloaded: ${currentPackId}`);
+      if (!currentPack?.data) throw new Error(`Pack not downloaded: ${currentPackId}`);
       let packData;
       try {
         packData = await currentPack.unzippedData();
@@ -386,6 +394,12 @@ export default function UnderfootMap() {
     ) {
       changePack().catch(e => {
         const error = e as Error;
+        // Reset loading state and the pack selection so a failed load falls
+        // back to the "no pack selected" screen instead of retrying forever
+        // with the same broken pack (and re-throwing on every retry).
+        setPackLoading(false);
+        setCurrentPackId(null);
+        packStore.setCurrent(null);
         alert(`Failed to change to pack ${currentPackId}: ${error.message}`);
         log(error.message);
         console.error(`Failed to change to pack ${currentPackId}`, error);
@@ -400,6 +414,7 @@ export default function UnderfootMap() {
     mapType,
     packLoading,
     packStore,
+    setCurrentPackId,
   ]);
 
   return (

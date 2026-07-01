@@ -5,6 +5,7 @@ export class Pack {
   admin1: string;
   admin2: string;
   bbox: PackBoundingBox;
+  data?: UnzippedPackData;
   description: string;
   downloadedAt?: string;
   id: string;
@@ -12,9 +13,8 @@ export class Pack {
   path?: string;
   pmtilesPath?: string;
   updatedAt: string;
-  zippedData?: Blob;
 
-  constructor(metadata: PackMetadata, data?: Blob) {
+  constructor(metadata: PackMetadata, data?: UnzippedPackData) {
     this.admin1 = metadata.admin1;
     this.admin2 = metadata.admin2;
     this.bbox = metadata.bbox;
@@ -23,7 +23,7 @@ export class Pack {
     this.name = metadata.name;
     this.pmtilesPath = metadata.pmtiles_path;
     this.updatedAt = metadata.updated_at;
-    this.zippedData = data;
+    this.data = data;
   }
 
   static fromPack(pack: Pack): Pack {
@@ -39,22 +39,22 @@ export class Pack {
         pmtiles_path: pack.pmtilesPath,
         updated_at: pack.updatedAt,
       },
-      pack.zippedData,
+      pack.data,
     );
     newPack.downloadedAt = pack.downloadedAt;
     return newPack;
   }
 
-  async unzippedData(): Promise<UnzippedPackData> {
-    let zip: jszip;
-    if (!this.zippedData) throw new Error('No zipped data to unzip');
-    try {
-      zip = await jszip.loadAsync(this.zippedData);
-    }
-    catch (loadAsyncErr) {
-      console.error('failed to load zip: ', loadAsyncErr);
-      return {};
-    }
+  // Unzips a freshly-downloaded pack archive once, up front, so later reads
+  // (including on subsequent page loads) are plain blob lookups instead of
+  // repeating the CPU-bound jszip decompression of the whole archive.
+  static async fromZip(metadata: PackMetadata, zipBlob: Blob): Promise<Pack> {
+    const data = await Pack.unzip(zipBlob);
+    return new Pack(metadata, data);
+  }
+
+  private static async unzip(zipBlob: Blob): Promise<UnzippedPackData> {
+    const zip = await jszip.loadAsync(zipBlob);
     const unzipped: UnzippedPackData = {};
     const zipPaths: string[] = [];
     zip.forEach(path => zipPaths.push(path));
@@ -98,5 +98,10 @@ export class Pack {
       }
     }));
     return unzipped;
+  }
+
+  unzippedData(): Promise<UnzippedPackData> {
+    if (!this.data) throw new Error('No unzipped data available');
+    return Promise.resolve(this.data);
   }
 }

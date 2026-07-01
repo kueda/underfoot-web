@@ -34,7 +34,7 @@ const PackListItem = ({
   pack,
   packStore,
 }: Props) => {
-  const isDownloaded = !!pack.zippedData;
+  const isDownloaded = !!pack.data;
   const hasUpdate = isDownloaded
     && !!pack.downloadedAt
     && pack.updatedAt > pack.downloadedAt;

@@ -33,13 +33,18 @@ export function usePackStore(): PackStore {
 
   const get = useCallback(async (packId: string): Promise<Pack | undefined> => {
     const storedPack = await packStore.getItem<Pack>(packId);
-    if (storedPack) {
+    if (storedPack?.data) {
       // Instantiate a full Pack object so we have all the instance methods
       const localPack = Pack.fromPack(storedPack);
       // Use the manifest's current updatedAt so we can detect if a newer version is available
       const manifestPack = manifest?.packs.find((pack: Pack) => pack.id === packId);
       if (manifestPack) localPack.updatedAt = manifestPack.updatedAt;
       return localPack;
+    }
+    if (storedPack) {
+      // Pack was stored by an older version of the app in an incompatible
+      // format; treat it as not downloaded rather than crashing on load.
+      await packStore.removeItem(packId);
     }
     return manifest?.packs.find((pack: Pack) => pack.id === packId);
   }, [manifest]);
@@ -108,8 +113,9 @@ export function usePackStore(): PackStore {
     }
     const blob = new Blob([chunksAll]);
 
-    // Create a pack object with that blob
-    const storedPack = new Pack({
+    // Unzip once here so later pack loads (including on a fresh page load)
+    // are plain blob lookups instead of repeating this decompression work.
+    const storedPack = await Pack.fromZip({
       admin1: pack.admin1,
       admin2: pack.admin2,
       bbox: pack.bbox,
