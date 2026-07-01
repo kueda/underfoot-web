@@ -377,12 +377,14 @@ export default function UnderfootMap() {
         log(`Map style.load event fired for pack ${currentPackId}`);
       });
 
-      const waysHeader = await waysPmtiles.getHeader();
-      map.current.setZoom(waysHeader.maxZoom - 2);
-      // map.current.on('zoom', () => {
-      //   console.log('[DEBUG Map.tsx] map.current.getZoom(): ', map.current?.getZoom());
-      // });
-      map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat]);
+      // Only reset the camera when switching to a different pack. Switching
+      // mapType (e.g. rocks <-> water) on the same pack should preserve the
+      // user's current view.
+      if (currentPackId !== loadedPackId) {
+        const waysHeader = await waysPmtiles.getHeader();
+        map.current.setZoom(waysHeader.maxZoom - 2);
+        map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat]);
+      }
       setLoadedPackId(currentPackId);
       setLoadedMapType(mapType);
       setPackLoading(false);
