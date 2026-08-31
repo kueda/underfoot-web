@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+.playwright*
+playwright/.auth/
+playwright-report/
+test-results/
+
+docs/
+
+.claude*
+
+dev-dist/
