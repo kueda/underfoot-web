@@ -12,7 +12,8 @@ import { Refresh } from '@mui/icons-material';
 import StopIcon from '@mui/icons-material/Stop';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { useRef, useState } from 'react';
+import Tooltip from '@mui/material/Tooltip';
+import { useEffect, useRef, useState } from 'react';
 
 import { Pack } from '../packs/Pack';
 import { PackStore } from '../packs/types';
@@ -24,6 +25,8 @@ interface Props {
   onDownload?: () => void;
   pack: Pack;
   packStore: PackStore;
+  // A shared link points at this pack: scroll it into view and prompt to download.
+  requested?: boolean;
 }
 
 const PackListItem = ({
@@ -33,6 +36,7 @@ const PackListItem = ({
   onDownload,
   pack,
   packStore,
+  requested,
 }: Props) => {
   const isDownloaded = !!pack.data;
   const hasUpdate = isDownloaded
@@ -43,6 +47,20 @@ const PackListItem = ({
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+  const itemRef = useRef<HTMLLIElement>(null);
+  // Show the "download this to open the shared map" prompt only while the linked
+  // pack actually needs downloading.
+  const showDownloadPrompt = !!requested && !isDownloaded && !downloadProgress;
+
+  useEffect(() => {
+    if (!showDownloadPrompt) return;
+    // Let the dialog's open transition settle before scrolling so the row lands
+    // centered rather than offset by the in-flight transform.
+    const timer = setTimeout(() => {
+      itemRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [showDownloadPrompt]);
   const handleDownload = () => {
     const ac = new AbortController();
     setAbortController(ac);
@@ -141,19 +159,40 @@ const PackListItem = ({
   }
   else {
     secondaryAction = (
-      <IconButton
-        edge="end"
-        color="primary"
-        aria-label="download"
-        onClick={handleDownload}
+      <Tooltip
+        open={showDownloadPrompt}
+        arrow
+        placement="left"
+        title="Download this pack to open the shared map"
+        disableFocusListener
+        disableHoverListener
+        disableTouchListener
+        slotProps={{
+          tooltip: {
+            sx: {
+              'maxWidth': 180,
+              'fontSize': '0.8rem',
+              'bgcolor': 'warning.main',
+              '& .MuiTooltip-arrow': { color: 'warning.main' },
+            },
+          },
+        }}
       >
-        <FileDownloadIcon />
-      </IconButton>
+        <IconButton
+          edge="end"
+          color="primary"
+          aria-label="download"
+          onClick={handleDownload}
+        >
+          <FileDownloadIcon />
+        </IconButton>
+      </Tooltip>
     );
   }
   return (
     <ListItem
       key={pack.id}
+      ref={itemRef}
       sx={{ pl: 0 }}
       secondaryAction={secondaryAction}
     >

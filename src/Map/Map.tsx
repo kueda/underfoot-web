@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl, { Map, MapGeoJSONFeature, ScaleControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from 'pmtiles';
@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { usePackStore } from '../packs/usePackStore';
 import { UnderfootFeature, WaterFeature } from '../packs/types';
+import { initialHashParams } from '../urlHash';
 import {
   addLog,
   useCurrentPackId,
@@ -112,11 +113,38 @@ export default function UnderfootMap() {
   const [loadedMapType, setLoadedMapType] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [packLoading, setPackLoading] = useState(false);
+  // Synchronous guard against changePack running again before an in-flight load
+  // finishes. The packLoading state lags a render behind, so effect re-runs
+  // triggered while a load is starting (e.g. right after a download) could
+  // otherwise kick off a second, concurrent load.
+  const packLoadingRef = useRef(false);
   const [mapFeature, setMapFeature] = useState<MapGeoJSONFeature>();
   const [underfootFeature, setUnderfootFeature] = useState<UnderfootFeature>();
   const [underfootFeatures, setUnderfootFeatures] = useState<UnderfootFeatures>({});
   const [citations, setCitations] = useState<Citations>({});
   const { add: log } = useLogging();
+  // A location from the URL hash (shared link) that should override the default
+  // "recenter on the pack" behavior the first time a pack loads. Consumed once.
+  const pendingHashLocation = useRef(initialHashParams.location);
+
+  // Update the "what's under the crosshairs" feature for the map's current
+  // center. Called while panning and again once the map settles, since a shared
+  // URL can position the map without any user move to trigger the lookup.
+  const refreshCenterFeature = useCallback((type: string | null) => {
+    if (!map.current) return;
+    const { lat, lng } = map.current.getCenter();
+    const features = map.current.queryRenderedFeatures(map.current.project([lng, lat]));
+    if (features.length === 0) {
+      setMapFeature(undefined);
+      return;
+    }
+    const feature = type === 'rocks'
+      ? features.find(f => f.sourceLayer === 'rock_units')
+      : features.find(f => f.sourceLayer === 'waterways')
+        || features.find(f => f.sourceLayer === 'waterbodies')
+        || features.find(f => f.sourceLayer === 'watersheds');
+    setMapFeature(feature);
+  }, []);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -128,6 +156,9 @@ export default function UnderfootMap() {
         zoom: 2,
         maxZoom: 22,
         attributionControl: false,
+        // Sync zoom/lat/lng to the URL as `#map=<zoom>/<lat>/<lng>`. The named
+        // form leaves our other hash params (pack, type) untouched.
+        hash: 'map',
       });
       map.current.on('load', () => {
         setMapLoaded(true);
@@ -203,31 +234,22 @@ export default function UnderfootMap() {
     }
 
     map.current.on('move', () => {
-      if (!map.current) return;
-      const { lat, lng } = map.current.getCenter();
-      const features = map.current.queryRenderedFeatures(map.current.project([lng, lat]));
-      // new maplibregl.Marker()
-      //   .setLngLat([lng,lat])
-      //   .addTo(map.current);
-      if (features.length > 0) {
-        let feature;
-        if (loadedMapType === 'rocks') {
-          feature = features.find(f => f.sourceLayer === 'rock_units');
-        }
-        else {
-          feature = (
-            features.find(f => f.sourceLayer === 'waterways')
-            || features.find(f => f.sourceLayer === 'waterbodies')
-            || features.find(f => f.sourceLayer === 'watersheds')
-          );
-        }
-        setMapFeature(feature);
-      }
-      else {
-        setMapFeature(undefined);
-      }
+      refreshCenterFeature(loadedMapType);
     });
-  }, [loadedMapType, log, map, mapContainer]);
+  }, [loadedMapType, log, map, mapContainer, refreshCenterFeature]);
+
+  // The map is often stationary right after a pack or map-type load (especially
+  // when a shared URL positioned it), so "move" never fires to populate the
+  // bottom sheet. Re-query the crosshairs feature each time the map settles.
+  useEffect(() => {
+    const mapInstance = map.current;
+    if (!mapInstance || !loadedMapType) return;
+    const handleIdle = () => refreshCenterFeature(loadedMapType);
+    mapInstance.on('idle', handleIdle);
+    return () => {
+      mapInstance.off('idle', handleIdle);
+    };
+  }, [loadedPackId, loadedMapType, refreshCenterFeature]);
 
   useEffect(() => {
     if (!loadedMapType) return;
@@ -271,12 +293,14 @@ export default function UnderfootMap() {
       log('changePack');
       if (currentPackId === loadedPackId && mapType === loadedMapType) return;
       if (!map.current) return;
-      if (packLoading) return;
+      if (packLoadingRef.current) return;
+      packLoadingRef.current = true;
       setPackLoading(true);
       // If there's no pack, ensure style gets reset so map is blank
       if (!currentPackId) {
         setLoadedPackId(null);
         map.current.setStyle(NO_STYLE);
+        packLoadingRef.current = false;
         setPackLoading(false);
         return;
       }
@@ -381,12 +405,22 @@ export default function UnderfootMap() {
       // mapType (e.g. rocks <-> water) on the same pack should preserve the
       // user's current view.
       if (currentPackId !== loadedPackId) {
-        const waysHeader = await waysPmtiles.getHeader();
-        map.current.setZoom(waysHeader.maxZoom - 2);
-        map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat]);
+        if (pendingHashLocation.current) {
+          // A shared link specified a location; honor it instead of recentering
+          // on the pack. Only applies to the first pack load.
+          const { zoom, lat, lng } = pendingHashLocation.current;
+          map.current.jumpTo({ center: [lng, lat], zoom });
+          pendingHashLocation.current = null;
+        }
+        else {
+          const waysHeader = await waysPmtiles.getHeader();
+          map.current.setZoom(waysHeader.maxZoom - 2);
+          map.current.setCenter([waysHeader.centerLon, waysHeader.centerLat]);
+        }
       }
       setLoadedPackId(currentPackId);
       setLoadedMapType(mapType);
+      packLoadingRef.current = false;
       setPackLoading(false);
     }
     if (
@@ -399,6 +433,7 @@ export default function UnderfootMap() {
         // Reset loading state and the pack selection so a failed load falls
         // back to the "no pack selected" screen instead of retrying forever
         // with the same broken pack (and re-throwing on every retry).
+        packLoadingRef.current = false;
         setPackLoading(false);
         setCurrentPackId(null);
         packStore.setCurrent(null);
@@ -414,7 +449,6 @@ export default function UnderfootMap() {
     loadedPackId,
     mapLoaded,
     mapType,
-    packLoading,
     packStore,
     setCurrentPackId,
   ]);

@@ -17,6 +17,7 @@ interface PackTabProps {
   onDownload: () => void;
   packs: Pack[] | null;
   packStore: PackStore;
+  requestedPackId?: string | null;
   value: string;
 }
 
@@ -29,6 +30,7 @@ const PackTab = ({
   onDownload,
   packs,
   packStore,
+  requestedPackId,
   value,
 }: PackTabProps) => (
   <TabPanel value={value} sx={{ padding: 0 }}>
@@ -45,6 +47,7 @@ const PackTab = ({
           currentPackId={currentPackId}
           pack={pack}
           packStore={packStore}
+          requested={pack.id === requestedPackId}
           onChoose={onChoose}
           onDelete={onDelete}
           onDownload={onDownload}

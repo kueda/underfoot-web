@@ -17,7 +17,12 @@ interface MapTypeState {
 
 interface PacksModalState {
   packsModalShown: boolean;
+  // Pack the user should be nudged to download, e.g. when a shared link points
+  // to a pack that isn't downloaded yet.
+  requestedPackId: string | null;
   showPacksModal: () => void;
+  // Opens the packs modal and highlights a specific pack to download.
+  requestPack: (packId: string) => void;
   hidePacksModal: () => void;
 }
 
@@ -67,14 +72,21 @@ const useAppStore = create<AppState>(set => ({
   },
   packsModal: {
     packsModalShown: false,
+    requestedPackId: null,
     showPacksModal: () => set(state => {
       // Directly updating the packsModalShown property to avoid unnecessary object creation
       state.packsModal.packsModalShown = true;
       return { packsModal: state.packsModal };
     }),
+    requestPack: (packId: string) => set(state => {
+      state.packsModal.packsModalShown = true;
+      state.packsModal.requestedPackId = packId;
+      return { packsModal: state.packsModal };
+    }),
     hidePacksModal: () => set(state => {
       // Directly updating the packsModalShown property to avoid unnecessary object creation
       state.packsModal.packsModalShown = false;
+      state.packsModal.requestedPackId = null;
       return { packsModal: state.packsModal };
     }),
   },
@@ -120,7 +132,9 @@ export const useSetCurrentPackId = () => useAppStore(s => s.currentPack.setCurre
 export const useMapType = () => useAppStore(s => s.map.mapType);
 export const useSetMapType = () => useAppStore(s => s.map.setMapType);
 export const usePacksModalShown = () => useAppStore(s => s.packsModal.packsModalShown);
+export const useRequestedPackId = () => useAppStore(s => s.packsModal.requestedPackId);
 export const useShowPacksModal = () => useAppStore(s => s.packsModal.showPacksModal);
+export const useRequestPack = () => useAppStore(s => s.packsModal.requestPack);
 export const useHidePacksModal = () => useAppStore(s => s.packsModal.hidePacksModal);
 export const useAboutModalShown = () => useAppStore(s => s.aboutModal.aboutModalShown);
 export const useShowAboutModal = () => useAppStore(s => s.aboutModal.showAboutModal);

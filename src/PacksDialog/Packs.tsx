@@ -10,13 +10,19 @@ import TabList from '@mui/lab/TabList';
 import Toolbar from '@mui/material/Toolbar';
 import { useEffect, useState } from 'react';
 import { Pack } from '../packs/Pack';
-import { useCurrentPackId, useHidePacksModal, useSetCurrentPackId } from '../useAppStore';
+import {
+  useCurrentPackId,
+  useHidePacksModal,
+  useRequestedPackId,
+  useSetCurrentPackId,
+} from '../useAppStore';
 import { usePackStore } from '../packs/usePackStore';
 import PackTab from './PackTab';
 
 export default function Packs() {
   const packStore = usePackStore();
   const currentPackId = useCurrentPackId();
+  const requestedPackId = useRequestedPackId();
   const onChoose = useSetCurrentPackId();
   const onClose = useHidePacksModal();
   const { list: listPacks, manifest, listLocal, error } = packStore;
@@ -59,6 +65,23 @@ export default function Packs() {
 
   const isOffline = !!error?.message?.match(/NetworkError/);
 
+  const requestedPack = requestedPackId
+    ? (packs ?? []).concat(downloadedPacks ?? []).find(pack => pack.id === requestedPackId)
+    : undefined;
+  // True while a shared link points at a pack that still needs downloading. The
+  // "All" tab is the only one that lists it, and PackListItem scrolls it into
+  // view and points a prompt at its download button.
+  const showRequestedPackPrompt = !!requestedPackId && !requestedPack?.data;
+
+  useEffect(() => {
+    if (showRequestedPackPrompt) setCurrentTab('all');
+  }, [showRequestedPackPrompt]);
+
+  useEffect(() => {
+    // Once the linked pack is downloaded and active, the user is done here.
+    if (requestedPackId && currentPackId === requestedPackId) onClose();
+  }, [requestedPackId, currentPackId, onClose]);
+
   return (
     <>
       <Toolbar>
@@ -95,6 +118,7 @@ export default function Packs() {
             isOffline={isOffline}
             loading={loading}
             currentPackId={currentPackId}
+            requestedPackId={requestedPackId}
             packStore={packStore}
             description={
               isOffline && !loading
@@ -118,6 +142,7 @@ export default function Packs() {
             isOffline={isOffline}
             loading={loadingLocal}
             currentPackId={currentPackId}
+            requestedPackId={requestedPackId}
             packStore={packStore}
             description={
               !loadingLocal && (downloadedPacks === null || downloadedPacks?.length === 0)
