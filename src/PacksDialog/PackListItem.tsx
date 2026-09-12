@@ -75,12 +75,14 @@ const PackListItem = ({
         console.error('Failed to download pack', e);
       });
   };
+  const downloadPercent = downloadProgress
+    ? Math.round(downloadProgress.loadedBytes / downloadProgress.totalBytes * 100)
+    : null;
   let secondaryAction;
   if (downloadProgress) {
-    const progress = Math.round(downloadProgress.loadedBytes / downloadProgress.totalBytes * 100);
     secondaryAction = (
       <Box sx={{ position: 'relative', display: 'inline-flex', mr: -1.5 }}>
-        <CircularProgress variant="determinate" value={progress} />
+        <CircularProgress variant="determinate" value={downloadPercent ?? 0} />
         <IconButton
           edge="end"
           aria-label="stop"
@@ -217,15 +219,17 @@ const PackListItem = ({
             noWrap: true,
           }}
           secondary={
-            hasUpdate
-              ? (
-                  <>
-                    <strong>Update Available</strong>
-                    {' '}
-                    {pack.description}
-                  </>
-                )
-              : pack.description
+            downloadPercent !== null
+              ? `${downloadPercent}% downloaded...`
+              : hasUpdate
+                ? (
+                    <>
+                      <strong>Update Available</strong>
+                      {' '}
+                      {pack.description}
+                    </>
+                  )
+                : pack.description
           }
           secondaryTypographyProps={{
             noWrap: true,
