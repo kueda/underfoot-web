@@ -1,5 +1,6 @@
 import BackpackIcon from '@mui/icons-material/Backpack';
 import Box from '@mui/material/Box';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import HistoryIcon from '@mui/icons-material/History';
@@ -12,6 +13,7 @@ import ListItemText from '@mui/material/ListItemText';
 import WaterIcon from '@mui/icons-material/Water';
 import InfoIcon from '@mui/icons-material/Info';
 
+import { reportBug } from './reportBug';
 import {
   ROCKS,
   WATER,
@@ -77,6 +79,14 @@ export default function UnderfootDrawer({
                   <HistoryIcon />
                 </ListItemIcon>
                 <ListItemText primary="Debug Log" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={reportBug}>
+                <ListItemIcon>
+                  <BugReportIcon />
+                </ListItemIcon>
+                <ListItemText primary="Report a Bug" />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
