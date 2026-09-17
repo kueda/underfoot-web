@@ -1,3 +1,5 @@
+# Underfoot Web was merged into https://github.com/kueda/underfoot on 2026-09-17
+
 # Underfoot Web
 
 Web app and PWA for displaying Underfoot geologic and hydrologic maps, available at [underfoot.rocks](https://underfoot.rocks).
